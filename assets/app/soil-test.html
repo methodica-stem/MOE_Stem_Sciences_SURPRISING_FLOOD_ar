@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>محاكاة: أنواع التربة وتسرّب الماء</title>
+<style>
+  html, body { margin: 0; width: 894px; height: 559px; overflow: hidden; background: #000; }
+  video, .poster { position: absolute; inset: 0; width: 894px; height: 559px; object-fit: cover; }
+  .poster { background: url('../images/soil-test-poster.jpg') 0 0 / cover; }
+  /* the same PLAY button as the video screens */
+  .go { position: absolute; left: 233px; top: 66px; width: 427px; height: 427px; padding: 0; border: none; background: url('../images/ui-play.png') center / contain no-repeat; cursor: pointer; }
+  .go:hover { filter: brightness(1.1); }
+  .go:focus-visible { outline: 3px solid #299FD4; outline-offset: 3px; }
+  .hidden { display: none; }
+</style>
+<link rel="stylesheet" href="../../fonts-ar.css">
+<link rel="stylesheet" href="../../applet-ar.css">
+</head>
+<body>
+<div class="poster" id="poster"></div>
+<video id="v" playsinline preload="auto" disablepictureinpicture><source src="../videos/soil-test.mp4" type="video/mp4"></video>
+<button class="go" id="go" type="button" aria-label="تشغيل الفيديو"></button>
+<script>
+  'use strict';
+  var v = document.getElementById('v'), go = document.getElementById('go'), poster = document.getElementById('poster');
+  v.style.visibility = 'hidden';
+  var started = false;
+  go.addEventListener('click', function () {
+    go.classList.add('hidden'); poster.classList.add('hidden'); v.style.visibility = 'visible';
+    if (!started) { started = true; try { window.parent.postMessage({ type: 'APPLET_STARTED' }, '*'); } catch (e) {} }
+    v.currentTime = 0; v.play().catch(function () {});
+  });
+  // At the end the last frame (the amounts) stays on screen and PLAY comes back, as on the video screens.
+  v.addEventListener('ended', function () { go.classList.remove('hidden'); });
+</script>
+</body>
+</html>

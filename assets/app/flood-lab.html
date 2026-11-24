@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مختبر الفيضانات المفاجئة</title>
+<style>
+  /* The lomda's own font files; nothing comes from the internet. */
+  @font-face { font-family: 'Assistant'; src: url('../fonts/Assistant-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'Assistant'; src: url('../fonts/Assistant-Medium.ttf') format('truetype'); font-weight: 500; }
+  @font-face { font-family: 'Assistant'; src: url('../fonts/Assistant-SemiBold.ttf') format('truetype'); font-weight: 600; }
+  @font-face { font-family: 'Assistant'; src: url('../fonts/Assistant-Bold.ttf') format('truetype'); font-weight: 700; }
+  @font-face { font-family: 'Assistant'; src: url('../fonts/Assistant-ExtraBold.ttf') format('truetype'); font-weight: 800; }
+  :root{
+    --navy:#12305a;
+    --navy-2:#1c4580;
+    --ink:#1e293b;
+    --ink-2:#475569;
+    --ink-3:#94a3b8;
+    --line:#e2e8f0;
+    --panel:#eef2f7;
+    --blue:#2f6db3;
+    --orange:#e07b24;
+    --green:#5b8c4a;
+    --run:#1f5fae;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; height:100%;}
+  body{
+    background:#072643;   /* the tablet screen's own colour in the lomda background */
+    font-family:"Assistant","Arial Hebrew",Arial,sans-serif;
+    color:var(--ink);
+    overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  /* ===== מסגרת בגודל אייפד לרוחב (1180×820), מותאמת למסך ===== */
+  #fit{position:fixed; inset:0; display:flex; align-items:center; justify-content:center;}
+  #app{
+    width:1180px; height:820px;
+    flex-shrink:0;
+    transform-origin:center center;
+    display:grid;
+    grid-template-rows:96px 1fr;
+    grid-template-columns:390px 1fr;
+    background:var(--panel);
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.6);
+  }
+
+  /* ===== כותרת ===== */
+  header{
+    grid-column:1 / -1;
+    position:relative;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:linear-gradient(180deg,var(--navy-2),var(--navy));
+    color:#fff;
+    border-bottom:3px solid #0b2140;
+  }
+  header h1{margin:0; font-size:36px; font-weight:800; letter-spacing:-.3px; line-height:1.1;}
+  header p{margin:4px 0 0; font-size:19px; font-weight:500; color:#c9d8ee;}
+  #reset{
+    position:absolute; left:22px; top:50%; transform:translateY(-50%);
+    display:flex; align-items:center; gap:8px;
+    padding:10px 18px;
+    background:#fff; color:var(--navy);
+    border:none; border-radius:14px;
+    font:700 18px "Assistant",Arial,sans-serif;
+    cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,.25);
+    transition:transform .15s;
+  }
+  #reset:hover{transform:translateY(-50%) scale(1.04);}
+
+  /* ===== במה ===== */
+  #stage{
+    grid-row:2; grid-column:2;
+    position:relative;
+    overflow:hidden;
+    background:#0d1b2e;
+  }
+
+  /* מסגרת הסרטון 16:9 */
+  .screen{
+    position:absolute; inset:0;
+    overflow:hidden;
+    background:#0d1b2e;
+  }
+  .screen video{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover;
+    background:#0d1b2e;
+    opacity:0; transition:opacity .5s;
+  }
+  .screen.playing video, .screen.done video{opacity:1;}
+
+  .placeholder{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    background:
+      radial-gradient(500px 260px at 50% 40%, rgba(47,109,179,.35), transparent 70%),
+      linear-gradient(180deg,#16304f,#0d1b2e);
+    color:#dbe6f5;
+    text-align:center;
+    transition:opacity .5s;
+  }
+  .screen.playing .placeholder, .screen.done .placeholder{opacity:0; pointer-events:none;}
+  .ph-icon{
+    width:96px; height:96px; border-radius:50%;
+    display:grid; place-items:center;
+    background:rgba(255,255,255,.08);
+    border:2px dashed rgba(255,255,255,.35);
+  }
+  .screen.ready .ph-icon{border-style:solid; border-color:#7fb2ec; background:rgba(127,178,236,.18); animation:breathe 1.8s ease-in-out infinite;}
+  @keyframes breathe{0%,100%{transform:scale(1);} 50%{transform:scale(1.07);}}
+  .ph-title{margin:0; font-size:26px; font-weight:800; color:#fff;}
+  .ph-sub{margin:0; font-size:18px; font-weight:500; color:#a9c0de; max-width:440px; line-height:1.4;}
+
+  /* פקדי סרטון */
+  .vbtn{
+    position:absolute;
+    display:flex; align-items:center; gap:7px;
+    padding:8px 14px;
+    border:none; border-radius:12px;
+    background:rgba(13,27,46,.7);
+    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    color:#fff;
+    font:700 16px "Assistant",Arial,sans-serif;
+    cursor:pointer;
+    opacity:0; pointer-events:none;
+    transition:opacity .3s, background-color .2s;
+  }
+  .vbtn:hover{background:rgba(13,27,46,.88);}
+  #mute{top:12px; left:12px;}
+  #replay{bottom:16px; left:12px;}
+  .screen.playing #mute, .screen.done #mute{opacity:1; pointer-events:auto;}
+  .screen.done #replay{opacity:1; pointer-events:auto;}
+  .progress{position:absolute; left:0; right:0; bottom:0; height:5px; background:rgba(255,255,255,.18); opacity:0; transition:opacity .3s;}
+  .screen.playing .progress{opacity:1;}
+  .progress i{display:block; height:100%; width:0; background:#7fb2ec; margin-right:0;}
+  #vid-error{
+    position:absolute; inset:0; display:none;
+    align-items:center; justify-content:center;
+    color:#fff; font-size:20px; font-weight:700; background:#0d1b2e;
+  }
+
+  /* כרטיס שילוב ותוצאה */
+  .board{
+    flex:1;
+    background:#fff;
+    border-radius:18px;
+    padding:14px 20px;
+    box-shadow:0 2px 8px -2px rgba(15,23,42,.12);
+    display:flex; flex-direction:column;
+  }
+  .board-label{margin:0 0 8px; font-size:17px; font-weight:700; color:var(--ink-2);}
+  .slots{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  .slot{
+    height:62px;
+    display:flex; align-items:center; gap:10px;
+    padding:0 14px;
+    border-radius:14px;
+    border:2px dashed #cbd5e1;
+    background:#f8fafc;
+    transition:background-color .25s, border-color .25s;
+  }
+  .slot-k{font-size:15px; font-weight:700; color:var(--ink-3); line-height:1.1;}
+  .slot-v{font-size:22px; font-weight:800; color:var(--ink-3); line-height:1.1;}
+  .slot.filled{border-style:solid;}
+  .slot.filled .slot-k{color:#fff; opacity:.85;}
+  .slot.filled .slot-v{color:#fff;}
+  .slot[data-cat="rain"].filled{background:var(--blue); border-color:var(--blue);}
+  .slot[data-cat="soil"].filled{background:var(--orange); border-color:var(--orange);}
+  .slot[data-cat="channel"].filled{background:var(--green); border-color:var(--green);}
+  .slot-dot{
+    flex-shrink:0;
+    width:30px; height:30px; border-radius:9px;
+    display:grid; place-items:center;
+    font-size:17px; font-weight:800;
+    background:#e2e8f0; color:var(--ink-3);
+  }
+  .slot.filled .slot-dot{background:rgba(255,255,255,.95);}
+  .slot[data-cat="rain"].filled .slot-dot{color:var(--blue);}
+  .slot[data-cat="soil"].filled .slot-dot{color:var(--orange);}
+  .slot[data-cat="channel"].filled .slot-dot{color:var(--green);}
+
+  .result-row{
+    flex:1;
+    margin-top:12px; padding-top:12px;
+    border-top:1px solid var(--line);
+    display:flex; align-items:center; gap:16px;
+  }
+  .res-wait{margin:0; font-size:18px; font-weight:600; color:var(--ink-3);}
+  .res-main{display:none; flex:1; align-items:center; gap:16px;}
+  .result-row.show .res-wait{display:none;}
+  .result-row.show .res-main{display:flex; animation:pop .5s cubic-bezier(.2,.9,.3,1.2);}
+  @keyframes pop{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+  .badge{
+    flex-shrink:0;
+    min-width:96px; padding:10px 14px;
+    border-radius:14px;
+    color:#fff; text-align:center;
+    font-size:22px; font-weight:800; line-height:1;
+  }
+  .res-title{margin:0; font-size:30px; font-weight:800; line-height:1.1;}
+  .res-side{margin-right:auto; display:flex; flex-direction:column; align-items:flex-end; gap:6px;}
+  .res-count{font-size:15px; font-weight:700; color:var(--ink-2);}
+  .tracker{display:flex; gap:5px;}
+  .tracker i{
+    width:22px; height:22px; border-radius:6px;
+    background:#e2e8f0;
+    display:grid; place-items:center;
+    font-style:normal; font-size:12px; font-weight:800; color:#fff;
+  }
+
+  /* ===== פאנל בחירה ===== */
+  aside{
+    grid-row:2; grid-column:1;
+    padding:16px;
+    display:flex; flex-direction:column; gap:12px;
+    background:var(--panel);
+    border-left:1px solid #d5dde8;
+  }
+  .choices{
+    flex:1;
+    background:#fff;
+    border-radius:18px;
+    padding:14px 16px 16px;
+    box-shadow:0 2px 8px -2px rgba(15,23,42,.12);
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .intro{margin:0 0 2px; font-size:17px; font-weight:600; line-height:1.4; color:var(--ink);}
+  .cat{display:flex; flex-direction:column; gap:8px;}
+  .cat-head{
+    height:40px;
+    display:flex; align-items:center; gap:10px;
+    padding:0 12px 0 6px;
+    border-radius:11px;
+    color:#fff;
+    font-size:20px; font-weight:800;
+  }
+  .cat-head svg{flex-shrink:0;}
+  .cat-head .num{
+    margin-right:auto;
+    width:30px; height:30px; border-radius:8px;
+    display:grid; place-items:center;
+    background:rgba(255,255,255,.95);
+    font-size:18px; font-weight:800;
+  }
+  .cat[data-cat="rain"] .cat-head{background:var(--blue);}
+  .cat[data-cat="rain"] .num{color:var(--blue);}
+  .cat[data-cat="soil"] .cat-head{background:var(--orange);}
+  .cat[data-cat="soil"] .num{color:var(--orange);}
+  .cat[data-cat="channel"] .cat-head{background:var(--green);}
+  .cat[data-cat="channel"] .num{color:var(--green);}
+
+  .opts{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .opt{
+    position:relative;
+    height:104px;
+    padding:0;
+    border:3px solid transparent;
+    border-radius:14px;
+    overflow:hidden;
+    cursor:pointer;
+    background:#e5e7eb;
+    box-shadow:0 2px 6px -2px rgba(15,23,42,.25);
+    transition:transform .15s, border-color .2s, box-shadow .2s, filter .2s, opacity .2s;
+    font-family:inherit;
+  }
+  .opt svg{position:absolute; inset:0; width:100%; height:100%;}
+  .opt .lbl{
+    position:absolute; left:0; right:0; bottom:0;
+    padding:16px 8px 6px;
+    background:linear-gradient(0deg,rgba(0,0,0,.6),rgba(0,0,0,0));
+    color:#fff;
+    font-size:21px; font-weight:800;
+    text-shadow:0 1px 3px rgba(0,0,0,.5);
+  }
+  .opt .check{
+    position:absolute; top:6px; right:6px;
+    width:26px; height:26px; border-radius:50%;
+    background:#fff;
+    display:grid; place-items:center;
+    transform:scale(0); transition:transform .2s cubic-bezier(.3,1.6,.5,1);
+  }
+  .opt:hover:not(:disabled){transform:translateY(-2px);}
+  .opt[aria-checked="true"]{transform:scale(1.02); border-width:4px; z-index:1;}
+  .opt[aria-checked="true"] .check{transform:scale(1);}
+  .cat[data-cat="rain"] .opt[aria-checked="true"]{border-color:var(--blue); box-shadow:0 0 0 4px rgba(47,109,179,.25), 0 10px 18px -6px rgba(15,23,42,.5);}
+  .cat[data-cat="soil"] .opt[aria-checked="true"]{border-color:var(--orange); box-shadow:0 0 0 4px rgba(224,123,36,.25), 0 10px 18px -6px rgba(15,23,42,.5);}
+  .cat[data-cat="channel"] .opt[aria-checked="true"]{border-color:var(--green); box-shadow:0 0 0 4px rgba(91,140,74,.25), 0 10px 18px -6px rgba(15,23,42,.5);}
+  .cat.has-choice .opt[aria-checked="false"]{filter:grayscale(1) brightness(1.05); opacity:.4; transform:scale(.96); box-shadow:none;}
+  .cat.has-choice .opt[aria-checked="false"]:hover:not(:disabled){opacity:.7; transform:scale(.98);}
+  .opt .check{width:30px; height:30px;}
+  .cat[data-cat="rain"] .opt .check{background:var(--blue);}
+  .cat[data-cat="soil"] .opt .check{background:var(--orange);}
+  .cat[data-cat="channel"] .opt .check{background:var(--green);}
+  .opt .check svg path{stroke:#fff;}
+  .opt:disabled{cursor:default;}
+  .opt:focus-visible, button:focus-visible{outline:3px solid #f59e0b; outline-offset:2px;}
+
+  .run-wrap{display:flex; flex-direction:column; gap:6px;}
+  #run-hint{margin:0; text-align:center; font-size:16px; font-weight:600; color:var(--ink-2); height:20px;}
+  #run{
+    height:62px;
+    display:flex; align-items:center; justify-content:center; gap:12px;
+    border:none; border-radius:16px;
+    background:linear-gradient(180deg,#2a72c7,var(--run));
+    color:#fff;
+    font:800 26px "Assistant",Arial,sans-serif;
+    cursor:pointer;
+    box-shadow:0 6px 16px -6px rgba(31,95,174,.8);
+    transition:transform .15s, background .3s, box-shadow .3s, opacity .3s;
+  }
+  #run:hover:not(:disabled){transform:translateY(-2px);}
+  #run:disabled{background:#b8c3d1; box-shadow:none; cursor:default;}
+  #run.again{background:linear-gradient(180deg,#f08a32,#d46a12); box-shadow:0 6px 16px -6px rgba(212,106,18,.8);}
+  #run.pulse{animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 6px 16px -6px rgba(31,95,174,.8);} 50%{box-shadow:0 0 0 6px rgba(42,114,199,.25), 0 6px 16px -6px rgba(31,95,174,.8);}}
+
+
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important; transition-duration:.01ms !important;}
+  }
+</style>
+<link rel="stylesheet" href="../../fonts-ar.css">
+<link rel="stylesheet" href="../../applet-ar.css">
+</head>
+<body>
+<div id="fit">
+<div id="app">
+
+  <header>
+    <h1>مختبر الفيضانات المفاجئة – ماذا سيحدث في واديكم؟</h1>
+    <p>جرّبوا توليفات مختلفة – هل ستحصلون في كلّ مرّة على النتيجة نفسها؟</p>
+  </header>
+
+  <!-- ===================== במה ===================== -->
+  <section id="stage" aria-label="نتيجة التجربة">
+    <div class="screen" id="screen">
+      <video id="video" playsinline webkit-playsinline preload="auto"></video>
+
+      <div class="placeholder" aria-hidden="true">
+        <div class="ph-icon">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#dbe6f5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z" fill="#dbe6f5"/></svg>
+        </div>
+        <p class="ph-title" id="ph-title">هنا سترون ما يحدث في الوادي</p>
+        <p class="ph-sub" id="ph-sub">اختاروا خيارا واحدا في كلّ عامل من العوامل الثلاثة، وانقروا على "تشغيل"</p>
+      </div>
+
+      <div class="progress"><i id="prog"></i></div>
+      <button class="vbtn" id="mute" type="button" aria-label="كتم الصوت">
+        <svg id="ic-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z" fill="#fff"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        <svg id="ic-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5L6 9H2v6h4l5 4z" fill="#fff"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
+      </button>
+      <button class="vbtn" id="replay" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        شاهدوا مرّة أخرى
+      </button>
+      <div id="vid-error">لم ننجح في تحميل الفيديو</div>
+    </div>
+
+  </section>
+
+  <!-- ===================== פאנל בחירה ===================== -->
+  <aside>
+    <div class="choices">
+      <p class="intro">اختاروا خيارا واحدا في كلّ عامل، ثمّ انقروا على "تشغيل" وشاهدوا ما يحدث في الوادي.</p>
+
+      <div class="cat" data-cat="rain">
+        <div class="cat-head" id="h-rain">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 15H7a4.5 4.5 0 1 1 1.1-8.86A6 6 0 0 1 19.5 8a3.5 3.5 0 0 1-2 7z" fill="rgba(255,255,255,.25)"/><path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/></svg>
+          شدّة المطر <span class="num">1</span>
+        </div>
+        <div class="opts" role="radiogroup" aria-labelledby="h-rain">
+          <button class="opt" role="radio" aria-checked="false" data-val="strong" type="button">
+            <svg viewBox="0 0 160 104" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs><linearGradient id="oS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34475e"/><stop offset="1" stop-color="#5f7996"/></linearGradient></defs>
+              <rect width="160" height="104" fill="url(#oS)"/>
+              <g stroke="#c9e0ff" stroke-width="2.2" stroke-linecap="round" opacity=".9">
+                <path d="M48 52l-6 14M60 54l-6 14M72 52l-6 14M84 54l-6 14M96 52l-6 14M108 54l-6 14M54 70l-5 11M66 72l-5 11M78 70l-5 11M90 72l-5 11M102 70l-5 11"/>
+              </g>
+              <g fill="#5d6977"><circle cx="62" cy="36" r="16"/><circle cx="84" cy="28" r="20"/><circle cx="104" cy="38" r="14"/><rect x="50" y="36" width="64" height="16" rx="8"/></g>
+              <g fill="#7a8696"><circle cx="66" cy="32" r="10"/><circle cx="86" cy="24" r="12"/></g>
+              <path d="M112 44l-8 14h7l-5 12 12-17h-7l5-9z" fill="#ffd34d"/>
+            </svg>
+            <span class="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2f6db3" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+            <span class="lbl">قصير وغزير</span>
+          </button>
+          <button class="opt" role="radio" aria-checked="false" data-val="light" type="button">
+            <svg viewBox="0 0 160 104" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs><linearGradient id="oL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dbe8f6"/><stop offset="1" stop-color="#bcd2ea"/></linearGradient></defs>
+              <rect width="160" height="104" fill="url(#oL)"/>
+              <g stroke="#4f86c9" stroke-width="2.2" stroke-linecap="round"><path d="M64 56v6M80 60v6M96 56v6M72 70v6M88 72v6"/></g>
+              <g fill="#aeb8c4"><circle cx="64" cy="38" r="14"/><circle cx="83" cy="30" r="18"/><circle cx="101" cy="40" r="12"/><rect x="52" y="38" width="60" height="14" rx="7"/></g>
+              <g fill="#cdd5de"><circle cx="68" cy="34" r="9"/><circle cx="85" cy="26" r="11"/></g>
+            </svg>
+            <span class="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2f6db3" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+            <span class="lbl">ضعيف</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="cat" data-cat="soil">
+        <div class="cat-head" id="h-soil">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19h20" /><path d="M4 19c2-5 5-8 8-8s6 3 8 8" fill="rgba(255,255,255,.3)"/><path d="M9 15h.01M13 14h.01M15 16h.01"/></svg>
+          نوع التربة <span class="num">2</span>
+        </div>
+        <div class="opts" role="radiogroup" aria-labelledby="h-soil">
+          <button class="opt" role="radio" aria-checked="false" data-val="clay" type="button">
+            <svg viewBox="0 0 160 104" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs><linearGradient id="oC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c58a5c"/><stop offset="1" stop-color="#9a6240"/></linearGradient></defs>
+              <rect width="160" height="104" fill="url(#oC)"/>
+              <g fill="none" stroke="#5e331b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+                <path d="M0 30 L30 26 L52 40 L84 32 L118 38 L160 30"/>
+                <path d="M30 26 L26 0 M84 32 L92 0 M118 38 L132 0"/>
+                <path d="M52 40 L46 70 L74 86 L80 104 M46 70 L0 76 M74 86 L112 72 L118 38 M112 72 L160 80 M112 72 L126 104 M84 32 L90 58 L112 72"/>
+              </g>
+              <g stroke="#d9a47b" stroke-width="2" opacity=".55" stroke-linecap="round"><path d="M8 50h28M60 54h20M124 56h22M96 12h14M40 12h12"/></g>
+            </svg>
+            <span class="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e07b24" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+            <span class="lbl">طين</span>
+          </button>
+          <button class="opt" role="radio" aria-checked="false" data-val="sand" type="button">
+            <svg viewBox="0 0 160 104" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs><linearGradient id="oD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d79c"/><stop offset="1" stop-color="#d7a95c"/></linearGradient></defs>
+              <rect width="160" height="104" fill="url(#oD)"/>
+              <g fill="none" stroke-linecap="round">
+                <path d="M-10 22 Q30 8 70 22 T150 20 T190 22" stroke="#c6964f" stroke-width="3"/>
+                <path d="M-10 42 Q30 28 70 42 T150 40 T190 42" stroke="#c6964f" stroke-width="3"/>
+                <path d="M-10 62 Q30 48 70 62 T150 60 T190 62" stroke="#c6964f" stroke-width="3"/>
+                <path d="M-10 82 Q30 68 70 82 T150 80 T190 82" stroke="#c6964f" stroke-width="3"/>
+                <path d="M-10 27 Q30 15 70 27 T150 25" stroke="#fbe7bf" stroke-width="2"/>
+                <path d="M-10 47 Q30 35 70 47 T150 45" stroke="#fbe7bf" stroke-width="2"/>
+                <path d="M-10 67 Q30 55 70 67 T150 65" stroke="#fbe7bf" stroke-width="2"/>
+              </g>
+            </svg>
+            <span class="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e07b24" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+            <span class="lbl">رمل</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="cat" data-cat="channel">
+        <div class="cat-head" id="h-channel">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M2 8c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/><path d="M2 13c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/><path d="M2 18c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/></svg>
+          شكل الوادي <span class="num">3</span>
+        </div>
+        <div class="opts" role="radiogroup" aria-labelledby="h-channel">
+          <button class="opt" role="radio" aria-checked="false" data-val="wide" type="button">
+            <svg viewBox="0 0 160 104" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs><linearGradient id="oW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd6ee"/><stop offset="1" stop-color="#e6eef4"/></linearGradient></defs>
+              <rect width="160" height="104" fill="url(#oW)"/>
+              <path d="M0 40 L40 34 L80 38 L120 32 L160 38 L160 50 L0 50Z" fill="#b8ab96"/>
+              <path d="M0 48 L60 44 L0 70Z" fill="#c49b6b"/>
+              <path d="M160 48 L100 44 L160 70Z" fill="#9b7350"/>
+              <path d="M60 44 L100 44 L160 70 L160 104 L0 104 L0 70Z" fill="#dcc196"/>
+              <g fill="#bfa47a"><ellipse cx="40" cy="86" rx="9" ry="3.5"/><ellipse cx="112" cy="92" rx="11" ry="4"/><ellipse cx="80" cy="66" rx="6" ry="2.4"/><ellipse cx="128" cy="72" rx="5" ry="2"/></g>
+            </svg>
+            <span class="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5b8c4a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+            <span class="lbl">واسع</span>
+          </button>
+          <button class="opt" role="radio" aria-checked="false" data-val="narrow" type="button">
+            <svg viewBox="0 0 160 104" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs><linearGradient id="oN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd6ee"/><stop offset="1" stop-color="#e6eef4"/></linearGradient></defs>
+              <rect width="160" height="104" fill="url(#oN)"/>
+              <path d="M0 0 L62 0 L70 40 L74 104 L0 104Z" fill="#b98a5e"/>
+              <path d="M160 0 L98 0 L90 40 L86 104 L160 104Z" fill="#7d5536"/>
+              <g stroke="#9c7048" stroke-width="2" opacity=".7"><path d="M0 26 L64 30M0 54 L70 58M0 80 L72 82"/></g>
+              <g stroke="#5f3f27" stroke-width="2" opacity=".6"><path d="M160 22 L96 28M160 50 L91 56M160 78 L88 82"/></g>
+              <path d="M70 40 L90 40 L86 104 L74 104Z" fill="#d8bd92"/>
+            </svg>
+            <span class="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5b8c4a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>
+            <span class="lbl">ضيّق</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="run-wrap">
+      <p id="run-hint">اخترتم 0 من أصل 3 عوامل</p>
+      <button id="run" type="button" disabled>
+        <span id="run-label">تشغيل</span>
+        <svg id="run-icon" width="24" height="24" viewBox="0 0 24 24" fill="#fff" style="transform:scaleX(-1)"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+      </button>
+    </div>
+  </aside>
+</div>
+</div>
+<p class="sr-only" id="sr" aria-live="assertive"></p>
+
+<script>
+(function(){
+  /* ============================================================
+     טבלת התוצאות (8 שילובים) והסרטון של כל שילוב
+     ============================================================ */
+  var RESULTS = {
+    'light|sand|wide':    {lvl:0, text:'لا يوجد جريان',             video:'light-sand-wide'},
+    'light|sand|narrow':  {lvl:0, text:'لا يوجد جريان',             video:'light-sand-narrow'},
+    'light|clay|wide':    {lvl:1, text:'جريان ضعيف',            video:'light-clay-wide'},
+    'light|clay|narrow':  {lvl:2, text:'جريان أسرع قليلا', video:'light-clay-narrow'},
+    'strong|sand|wide':   {lvl:0, text:'لا يوجد جريان',             video:'strong-sand-wide'},
+    'strong|sand|narrow': {lvl:0, text:'لا يوجد جريان',             video:'strong-sand-narrow'},
+    'strong|clay|wide':   {lvl:3, text:'جريان متوسّط',         video:'strong-clay-wide'},
+    'strong|clay|narrow': {lvl:4, text:'جريان قويّ جدّا',      video:'strong-clay-narrow'}
+  };
+  var ORDER = ['light|sand|wide','light|sand|narrow','light|clay|wide','light|clay|narrow',
+               'strong|sand|wide','strong|sand|narrow','strong|clay|wide','strong|clay|narrow'];
+  var NAMES = {light:'ضعيف', strong:'قصير وغزير', sand:'رمل', clay:'طين', wide:'واسع', narrow:'ضيّق'};
+  var LEVEL_COLORS = ['#94a3b8','#60a5fa','#2563eb','#f59e0b','#dc2626'];
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* התאמת גודל קבוע למסך */
+  var app = $('app');
+  function fit(){ app.style.transform = 'scale(' + Math.min(window.innerWidth/1180, window.innerHeight/820) + ')'; }
+  window.addEventListener('resize', fit); fit();
+
+  /* the eight result clips are files next to the lomda (assets/videos/lab-*.mp4) */
+  function videoURL(name){ return '../videos/lab-' + name + '.mp4'; }
+
+  var sel = {rain:null, soil:null, channel:null};
+  var mode = 'idle';   // idle | playing | done
+  var cur = null, tried = {}, muted = false;
+
+  var screen=$('screen'), video=$('video'), prog=$('prog');
+  var runBtn=$('run'), runLabel=$('run-label'), runHint=$('run-hint');
+  var opts = document.querySelectorAll('.opt');
+
+  function count(){ return (sel.rain?1:0)+(sel.soil?1:0)+(sel.channel?1:0); }
+
+  function refresh(){
+    document.querySelectorAll('.cat').forEach(function(c){
+      var v = sel[c.dataset.cat];
+      c.classList.toggle('has-choice', !!v);
+      c.querySelectorAll('.opt').forEach(function(o){
+        o.setAttribute('aria-checked', o.dataset.val===v ? 'true':'false');
+        o.disabled = mode!=='idle';
+      });
+    });
+    var n = count();
+    screen.classList.toggle('ready', mode==='idle' && n===3);
+    if (mode==='idle'){
+      runBtn.classList.remove('again');
+      runLabel.textContent='تشغيل'; $('run-icon').style.display='';
+      runBtn.disabled = n<3;
+      runBtn.classList.toggle('pulse', n===3);
+      runHint.textContent = n<3 ? 'اخترتم '+n+' من أصل 3 عوامل' : 'جاهزون! انقروا على "تشغيل"';
+      $('ph-title').textContent = n<3 ? 'هنا سترون ما يحدث في الوادي' : 'كلّ شيء جاهز!';
+      $('ph-sub').textContent = n<3 ? 'اختاروا خيارا واحدا في كلّ عامل من العوامل الثلاثة، وانقروا على "تشغيل"' : 'انقروا على "تشغيل" لتروا ما سيحدث في الوادي';
+    } else if (mode==='playing'){
+      runBtn.disabled = true; runBtn.classList.remove('pulse','again');
+      runLabel.textContent='التجربة قيد التشغيل...'; $('run-icon').style.display='none';
+      runHint.textContent='شاهدوا ما يحدث في الوادي';
+    } else {
+      runBtn.disabled = false; runBtn.classList.add('again'); runBtn.classList.remove('pulse');
+      runLabel.textContent='جرّبوا توليفة أخرى'; $('run-icon').style.display='none';
+      runHint.textContent='اختاروا توليفة جديدة وقارنوا';
+    }
+  }
+
+  opts.forEach(function(o){
+    o.addEventListener('click', function(){
+      if (mode!=='idle') return;
+      sel[o.closest('.cat').dataset.cat] = o.dataset.val;
+      if (!window._startedSent) { window._startedSent = true; try { window.parent.postMessage({ type: 'APPLET_STARTED' }, '*'); } catch (e) {} }
+      refresh();
+      if (count()===3){                 /* טעינה מוקדמת של הסרטון */
+        var r = RESULTS[sel.rain+'|'+sel.soil+'|'+sel.channel];
+        video.src = videoURL(r.video); video.load();
+      }
+    });
+  });
+
+  function play(){
+    $('vid-error').style.display='none';
+    video.muted = muted;
+    video.currentTime = 0;
+    var p = video.play();
+    if (p && p.catch) p.catch(function(){ muted = true; video.muted = true; setMuteIcon(); video.play().catch(function(){}); });
+  }
+
+  function startRun(){
+    var key = sel.rain+'|'+sel.soil+'|'+sel.channel;
+    var r = RESULTS[key];
+    cur = {key:key, lvl:r.lvl, text:r.text};
+    var url = videoURL(r.video);
+    if (video.src !== url) video.src = url;
+    mode = 'playing';
+    screen.classList.remove('done'); screen.classList.add('playing');
+    refresh();
+    play();
+    $('sr').textContent = 'بدأ الفيديو: '+NAMES[sel.rain]+'، '+NAMES[sel.soil]+'، '+NAMES[sel.channel];
+  }
+
+  function finishRun(){
+    if (mode!=='playing') return;
+    mode = 'done';
+    screen.classList.remove('playing'); screen.classList.add('done');
+    refresh();
+    $('sr').textContent = 'النتيجة: '+cur.text;
+  }
+
+  function toIdle(){
+    mode = 'idle';
+    sel = {rain:null, soil:null, channel:null};   /* איפוס שלושת הגורמים */
+    video.pause();
+    screen.classList.remove('playing','done');
+    refresh();
+  }
+
+  video.addEventListener('ended', finishRun);
+  video.addEventListener('timeupdate', function(){
+    if (video.duration) prog.style.width = (video.currentTime/video.duration*100)+'%';
+  });
+  video.addEventListener('error', function(){
+    if (mode==='idle') return;
+    $('vid-error').style.display='flex';
+    finishRun();
+  });
+
+  runBtn.addEventListener('click', function(){
+    if (mode==='idle' && count()===3) startRun();
+    else if (mode==='done') toIdle();
+  });
+
+  $('replay').addEventListener('click', function(){
+    if (mode!=='done') return;
+    mode = 'playing';
+    screen.classList.remove('done'); screen.classList.add('playing');
+    refresh(); play();
+  });
+
+  function setMuteIcon(){
+    $('ic-on').style.display = muted ? 'none' : '';
+    $('ic-off').style.display = muted ? '' : 'none';
+    $('mute').setAttribute('aria-label', muted ? 'تشغيل الصوت' : 'كتم الصوت');
+  }
+  $('mute').addEventListener('click', function(){ muted = !muted; video.muted = muted; setMuteIcon(); });
+
+
+  refresh();
+})();
+</script>
+</body>
+</html>

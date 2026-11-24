@@ -1,0 +1,764 @@
+/* ===================================================================
+   styles.css — השיטפון המפתיע
+
+   Fixed 1920x1080 stage, scaled to the window by script.js. Every left /
+   top / width / height below is a real PSD pixel (stem_flood.psd).
+
+   Sections:
+     1. Design tokens — the only part to change for a new design
+     2. Fonts, base, stage
+     3. Shared parts — navigation, buttons, panels, feedback, stepper
+     4. Screen types — video, tiles, questions, drag and drop, applets
+     5. Per-screen positions — one block per screen, at the end
+   =================================================================== */
+
+/* ---------- 1. Design tokens ---------- */
+:root {
+  --subject-500: #17165B;        /* titles */
+  --subject-600: #158AEE;        /* blue emphasis inside text (terms) */
+  --accent: #299FD4;             /* stepper pills, focus, highlights */
+  --text: #1A1A1A;
+  --panel-bg: #FFFFFF;
+  --panel-border: #000000;
+  --btn-bg: #404040;
+  --btn-text: #FFFFFF;
+  --fb-bg: #2A2A2A;              /* feedback popup */
+  --fb-text: #FCFAFA;
+  --fb-correct: #34BE45;         /* "צדקת!" */
+  --fb-wrong: #9834F6;           /* retry / partial / wrong — never red */
+  --opt-correct: #3EA34A;
+  --opt-wrong: #FF0000;          /* only on the final reveal (PSD) */
+  --chip-bg: #156082;
+  --chip-text: #ffffff;
+  --term-color: #158AEE;
+  --font-main: 'Assistant';      /* one family name for the whole lomda (the Arabic build swaps it in one place) */
+  --text-size: 41.8px;           /* question text */
+  --focus: 3px solid #299FD4;
+}
+
+/* ---------- 2. Fonts, base, stage ---------- */
+/* Fonts ship with the lomda (assets/fonts); nothing loads from the internet. */
+@font-face { font-family: 'Assistant'; src: url('assets/fonts/Assistant-ExtraLight.ttf') format('truetype'); font-weight: 200; font-display: swap; }
+@font-face { font-family: 'Assistant'; src: url('assets/fonts/Assistant-Light.ttf') format('truetype'); font-weight: 300; font-display: swap; }
+@font-face { font-family: 'Assistant'; src: url('assets/fonts/Assistant-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Assistant'; src: url('assets/fonts/Assistant-Medium.ttf') format('truetype'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Assistant'; src: url('assets/fonts/Assistant-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Assistant'; src: url('assets/fonts/Assistant-Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Assistant'; src: url('assets/fonts/Assistant-ExtraBold.ttf') format('truetype'); font-weight: 800; font-display: swap; }
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100%;
+  overflow: hidden;
+  direction: rtl;
+  font-family: var(--font-main), sans-serif;
+  background: #000;
+  color: var(--text);
+}
+button, input, select, textarea { font-family: inherit; }
+
+#app {
+  position: absolute; top: 0; left: 0;
+  width: 1920px; height: 1080px;
+  transform-origin: top left;
+  background: #0a0a0a;
+  overflow: hidden;
+}
+.screen {
+  display: none;
+  position: absolute; inset: 0;
+  width: 1920px; height: 1080px;
+  overflow: hidden;
+}
+.screen.active { display: block; }
+.screen:focus { outline: none; }
+
+.screen-bg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  pointer-events: none; user-select: none;
+}
+/* Stand-in until the real background is exported from the PSD. */
+.bg-placeholder { background: linear-gradient(160deg, #3d5a73, #1b2a38); }
+/* Pictures placed at their PSD position (set left/top/width/height per screen). */
+.art { position: absolute; display: block; pointer-events: none; user-select: none; }
+
+.hidden { display: none !important; }
+[onclick], [role="button"], [data-action] { cursor: pointer; }
+:focus-visible { outline: var(--focus); outline-offset: 3px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+/* Numbers, units and symbols keep their own order inside Hebrew text:
+   <span class="ltr">120°C</span> */
+.ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+/* ---------- 3. Shared parts ---------- */
+/* Navigation. RTL: forward is on the LEFT, back on the RIGHT. The art comes
+   from the PSD (ui-btn-next / ui-btn-prev, 173x172 with their shadow). */
+.nav-btn {
+  position: absolute; top: 897px;
+  width: 173px; height: 172px;
+  border: none; padding: 0; margin: 0;
+  background: center / contain no-repeat;
+  cursor: pointer;
+  z-index: 210;   /* above the feedback popup (200), below the zoom / reopen overlays */
+}
+.nav-next { left: -4px; background-image: url('assets/images/ui-btn-next.png'); }
+.nav-prev { left: 1752px; background-image: url('assets/images/ui-btn-prev.png'); }
+.nav-btn:hover { filter: brightness(1.12); }
+.nav-btn.blink { animation: blinkArrow 1.1s infinite; }
+@keyframes blinkArrow { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+.btn-primary {
+  position: absolute;
+  min-width: 260px; height: 88px; padding: 0 40px;
+  border: none; border-radius: 22px;
+  background: var(--btn-bg); color: var(--btn-text);
+  font-size: 40px; font-weight: 800;
+  cursor: pointer; z-index: 12;
+}
+.btn-primary:hover { filter: brightness(1.15); }
+
+/* The check button stays hidden until there is something to check — never
+   shown faded. The disabled attribute alone hides it, so the page is right
+   even before script.js runs. Skin from the PSD; the label is live text. */
+.btn-check {
+  position: absolute; left: 101px; top: 825px;
+  width: 290px; height: 209px; padding: 0 70px 6px;
+  border: none; background: url('assets/images/ui-btn-check.png') center / 100% 100% no-repeat;
+  color: var(--btn-text);
+  font-size: 41.8px; font-weight: 700; line-height: 1.05; text-align: center;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 12;
+}
+.btn-check:disabled { display: none; }
+.btn-check:hover { filter: brightness(1.15); }
+
+/* Narration banner at the top of a screen (the storyboard's banner shape). */
+.narration-banner {
+  position: absolute; top: 0; right: 360px; left: 360px;
+  padding: 18px 40px;
+  background: #FFFFFF; border: 3px solid var(--panel-border); border-top: none;
+  border-radius: 0 0 36px 36px;
+  font-size: 33.3px; font-weight: 600; line-height: 1.45;
+  z-index: 6;
+}
+.narration-banner p { margin: 0; }
+
+.text-panel {
+  position: absolute; top: 160px; right: 160px; width: 900px;
+  padding: 36px 44px;
+  background: rgba(255,255,255,.95); border-radius: 30px;
+  font-size: 34px; font-weight: 600; line-height: 1.6;
+}
+.text-panel p { margin: 0 0 12px; }
+
+/* Question screens: the classroom background, a dark veil and the white
+   panel from the PSD (ui-q-panel). Text sits on the panel as live HTML. */
+.q-overlay { position: absolute; inset: 0; background: rgba(26,23,23,.45); }
+.q-panel { position: absolute; left: 21px; top: 96px; width: 1910px; height: 998px; pointer-events: none; }
+.q-card {
+  position: absolute; top: 167px; right: 118px; width: 850px;   /* first baseline at y=213 like the PSD */
+  padding: 0;
+  background: none; border: none;
+}
+/* PSD: title 44.8px Bold, stem 41.8px Bold, instruction and answers 41.8px SemiBold, automatic leading (120%) */
+.q-title { margin: 0; font-size: 44.8px; font-weight: 700; line-height: 54px; color: var(--subject-500); }
+.q-body, .q-instruction { margin: 0; font-size: var(--text-size); line-height: 50px; }
+.q-body { font-weight: 700; color: var(--text); }
+.q-instruction { font-weight: 600; }
+
+/* Feedback popup — one for the whole lomda, outside every screen. Long
+   text grows UPWARD (anchored at the bottom). Dark panel at the bottom-left
+   like the PSD (frame 9a). Move it per screen with #feedback-popup.fb-<sid>. */
+#feedback-popup {
+  position: absolute; left: 124px; bottom: 58px;
+  width: 777px; min-height: 295px; max-width: none;
+  padding: 36px 52px 34px;
+  background: var(--fb-bg); color: var(--fb-text);
+  border-radius: 32px;
+  z-index: 200;
+  display: none;
+}
+#feedback-popup.show { display: block; }
+#feedback-popup:focus { outline: none; }
+/* In RTL the icon sits at the left end of the title line (row-reverse). */
+.fb-title-row { display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 14px; margin: 0 0 8px; }
+.fb-title { font-size: 37.3px; font-weight: 700; line-height: 1.3; }
+#feedback-popup.correct .fb-title { color: var(--fb-correct); }
+#feedback-popup.retry .fb-title, #feedback-popup.retryPartial .fb-title,
+#feedback-popup.partial .fb-title, #feedback-popup.wrong2 .fb-title { color: var(--fb-wrong); }
+/* The icon is never the only signal — the title says the outcome in words. */
+.fb-icon { display: none; width: 68px; height: 68px; flex: 0 0 auto; background: center / contain no-repeat; }
+#feedback-popup.correct .fb-icon { display: inline-block; background-image: url('assets/images/ui-fb-correct.png'); }
+#feedback-popup.wrong2 .fb-icon, #feedback-popup.partial .fb-icon { display: inline-block; background-image: url('assets/images/ui-fb-try.png'); }
+.fb-body p { margin: 0 0 8px; font-size: 37.3px; font-weight: 600; line-height: 1.3; }
+
+/* Question stepper (progress pills) — built by script.js from data-step.
+   Position and size from the PSD (frame 13, eight pills): the pill group is
+   496px wide, starting at x=716; pill 1 is on the right. */
+.q-stepper {
+  position: absolute; top: 47px; left: 716px; width: 496px;
+  display: none; gap: 8px; z-index: 20;
+  direction: rtl;
+}
+.q-stepper.visible { display: flex; }
+.q-step {
+  width: 55px; height: 55px; border-radius: 50%;
+  border: 4px solid var(--accent); background: #fff; color: var(--accent);
+  font-size: 40px; font-weight: 600; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.q-step.active { background: var(--accent); color: #FCFCFC; }
+
+/* Glossary term with a tooltip (hover/focus; tap on touch). The bubble art is
+   the PSD's; the text is live. */
+.term {
+  border: none; background: none; padding: 0; margin: 0;
+  font: inherit; font-weight: 700; color: var(--term-color);
+  cursor: help;
+}
+.term-tip {
+  display: none; position: absolute; z-index: 230;
+  isolation: isolate;
+  font-size: 26.7px; font-weight: 400; line-height: 32px; color: #000;   /* PSD: automatic leading = 120% */
+  text-align: right; white-space: nowrap;
+  pointer-events: none;
+}
+/* the bubble art sits behind the text and carries the PSD's soft shadow
+   (opacity 24%, 5px down, 18px blur) */
+.term-tip::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: var(--tip-img) center / 100% 100% no-repeat;
+  filter: drop-shadow(0 5px 9px rgba(12,12,13,.24));
+}
+.term-tip b { font-weight: 700; color: var(--term-color); }
+.term-tip .semi { font-weight: 600; }
+/* A glossary tip darkens the screen behind it (PSD: black at 40%). */
+.tip-dim { display: none; position: absolute; inset: 0; z-index: 220; background: rgba(0,0,0,.4); pointer-events: none; }
+.screen:has(.term:hover) .tip-dim, .screen:has(.term:focus-visible) .tip-dim, .screen:has(.term.is-open) .tip-dim { display: block; }
+.term:hover + .term-tip, .term:focus-visible + .term-tip, .term.is-open + .term-tip { display: block; }
+
+/* Image zoom */
+.figure-frame { position: absolute; margin: 0; background: #fff; border-radius: 20px; padding: 16px; }
+.figure-frame img { display: block; width: 100%; height: auto; }
+.zoom-btn {
+  position: absolute; width: 95px; height: 82px;
+  border: none; padding: 0; background: url('assets/images/ui-zoom.png') center / contain no-repeat;
+  cursor: pointer; z-index: 5;
+}
+#img-zoom-modal {
+  position: absolute; inset: 0; z-index: 300;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.7);
+}
+#img-zoom-modal.show { display: flex; }
+.img-zoom-panel { position: relative; max-width: 1700px; max-height: 1000px; padding: 24px; background: #fff; border-radius: 24px; }
+#img-zoom-body img { display: block; height: 940px; width: auto; max-width: 1650px; }   /* photos are enlarged to the panel height */
+#img-zoom-body .zoom-clone { position: relative; left: auto; top: auto; zoom: 1.75; }
+.img-zoom-close {
+  position: absolute; top: -22px; right: -22px; width: 56px; height: 56px;
+  border: none; border-radius: 50%; background: var(--btn-bg); color: #fff; font-size: 28px; cursor: pointer;
+}
+
+/* Reopen popup: an earlier screen's applet / diagram shown again. */
+.reopen-btn {
+  position: absolute; z-index: 25;
+  width: 194px; height: 194px; padding: 0 45px;   /* the art is centred on the circle, so the text is too */
+  border: none; background: url('assets/images/ui-btn-reopen.png') center / contain no-repeat;
+  color: #fff; font-size: 20px; font-weight: 700; line-height: 24px; text-align: center;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.reopen-btn.is-open { filter: brightness(1.25); }
+#reopen-popup {
+  position: absolute; top: 110px; right: 40px; z-index: 250;
+  width: 1100px; height: 700px; padding: 16px;
+  display: none;
+  background: #fff; border-radius: 24px; box-shadow: 0 6px 24px rgba(0,0,0,.45);
+}
+#reopen-popup.show { display: block; }
+#reopen-popup-body, #reopen-popup-body > * { position: static; width: 100%; height: 100%; }
+#reopen-popup-body img { object-fit: contain; }
+
+/* ---------- 4. Screen types ---------- */
+/* Video */
+.video-wrap { position: absolute; inset: 0; }
+.video-wrap video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
+.video-caption {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 90px; pointer-events: none;
+}
+.video-caption p {
+  margin: 0; max-width: 1400px; text-align: center;
+  unicode-bidi: plaintext; white-space: pre-line;
+  background: rgba(0,0,0,.75); color: #fff;
+  font-size: 34px; font-weight: 600; line-height: 1.4;
+  padding: 10px 24px; border-radius: 8px;
+}
+/* The big play button: the PSD's art, 427px, centred on the stage. */
+.play-btn-big {
+  position: absolute; top: 324px; left: 746px;
+  width: 427px; height: 427px; padding: 0; border: none;
+  background: url('assets/images/ui-play.png') center / contain no-repeat;
+  cursor: pointer; z-index: 5;
+}
+.play-btn-big:hover { filter: brightness(1.1); }
+.vctrls {
+  position: absolute; left: 150px; right: 150px; bottom: 0; z-index: 14;
+  height: 58px; padding: 0 22px;
+  display: flex; align-items: center; gap: 12px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(to top, rgba(0,0,0,.78), rgba(0,0,0,.32));
+}
+.vc-btn {
+  flex: 0 0 auto; width: 36px; height: 36px;
+  border: none; border-radius: 50%;
+  background: rgba(255,255,255,.12); color: #fff; font-size: 18px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.vc-btn:hover { background: rgba(255,255,255,.22); }
+.vc-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.vc-cc { width: auto; padding: 0 8px; border-radius: 8px; font-size: 13px; font-weight: 700; }
+.vc-cc.is-off { color: rgba(255,255,255,.5); }
+.vc-time { flex: 0 0 auto; min-width: 40px; color: #fff; font-size: 15px; text-align: center; font-variant-numeric: tabular-nums; }
+.vc-seek { flex: 1 1 auto; accent-color: var(--accent); }
+.vc-vol { flex: 0 0 90px; accent-color: var(--accent); }
+/* A banner shown over a video until it starts (and again once it has ended). */
+.video-banner { position: absolute; }
+.screen.video-playing .video-banner { display: none; }
+
+/* Reveal tiles (students' portraits). The PNG portraits carry their own
+   white ring; the green outline and the grey "done" state are drawn here. */
+.tiles { position: static; }
+.tile {
+  position: absolute; z-index: 4;
+  width: 168px; height: 175px; padding: 0; border: none; background: none;
+  cursor: pointer;
+}
+.tile img { display: block; width: 100%; height: 100%; }
+.tile::after {
+  content: ''; position: absolute; inset: 5px 5px 7px 5px; border-radius: 50%;
+  border: 7px solid transparent; pointer-events: none;
+}
+.tile.current::after { border-color: #3AA640; }
+.tile.viewed:not(.current) img { filter: grayscale(1) brightness(.88); }
+.tile-check {
+  display: none; position: absolute; top: 1px; right: -6px;
+  width: 53px; height: 53px; background: url('assets/images/ui-check.png') center / contain no-repeat;
+}
+.tile.viewed:not(.current) .tile-check { display: block; }   /* the tick appears once another portrait is chosen (PSD frame 14b) */
+.tile .tile-content { display: none; }
+.tiles-board {
+  position: absolute; z-index: 4;
+  font-size: 46.7px; font-weight: 600; line-height: 1.3; text-align: center;
+}
+.tiles-board strong { display: block; color: #0F1167; font-weight: 700; }
+.tiles-board.empty { visibility: hidden; }
+
+/* Answer options — single (round mark) and multi (square mark) */
+.q-answers { display: flex; flex-direction: column; gap: 0; margin-top: 50px; }
+.q-opt {
+  display: flex; align-items: flex-start; gap: 16px;
+  font-size: 41.8px; font-weight: 600; line-height: 50px;
+  cursor: pointer;
+}
+.q-mark {
+  flex: 0 0 auto; position: relative;
+  width: 21px; height: 21px; margin-top: 15px;
+  border: 3px solid var(--subject-500); border-radius: 50%; background: #fff;
+}
+.q-opt[data-multi] .q-mark { border-radius: 6px; }
+.q-opt.selected .q-mark::after { content: ''; position: absolute; inset: 4px; border-radius: inherit; background: var(--subject-500); }
+/* Final state (PSD frames 9a, 12a, 12b): a right answer is green with a green tick drawn across its ring; a
+   wrong pick is red with a cross inside its ring. Both are 40x40 drawings centred on the ring. */
+.q-opt.correct { color: var(--opt-correct); }
+.q-opt.wrong { color: var(--opt-wrong); }
+.q-opt.correct .q-mark::after, .q-opt.wrong .q-mark::after {
+  content: ''; position: absolute; inset: auto; left: -12.5px; top: -12.5px; width: 40px; height: 40px;
+  border-radius: 0; background: center / 40px 40px no-repeat;
+}
+.q-opt.correct .q-mark::after { background-image: url('assets/images/ui-mark-correct.svg'); }
+.q-opt.wrong .q-mark::after { background-image: url('assets/images/ui-mark-wrong.svg'); }
+
+/* Drag and drop */
+.dnd-bank { display: flex; flex-wrap: wrap; gap: 14px; min-height: 64px; margin: 10px 0 26px; }
+.dnd-chip {
+  min-height: 56px; padding: 6px 22px;
+  border: none; border-radius: 12px;
+  background: var(--chip-bg); color: var(--chip-text);
+  font-size: 28px; font-weight: 700;
+  cursor: grab; touch-action: none; user-select: none;
+}
+.dnd-chip.picked { outline: 4px solid var(--accent); outline-offset: 3px; }
+.dnd-chip.dragging { opacity: .35; }
+.dnd-chip.locked { cursor: default; }
+.dnd-ghost { position: absolute; z-index: 400; pointer-events: none; opacity: .92; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+.dnd-slot {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 190px; min-height: 60px; margin: 4px 6px; vertical-align: middle;
+  border: 3px dashed #8a8a8a; border-radius: 12px; background: #fff;
+}
+.dnd-slot.filled { border-style: solid; border-color: transparent; }
+.dnd-slot.drop-target { border-color: var(--accent); background: #eaf6fc; }
+.dnd-slot.correct { border: 3px solid var(--opt-correct); }
+.dnd-slot.wrong { border: 3px solid var(--opt-wrong); }
+.cloze { font-size: var(--text-size); font-weight: 600; line-height: 2.1; }
+
+/* Applets */
+.applet-frame {
+  position: absolute; top: 160px; left: 220px; width: 1480px; height: 820px;
+  border-radius: 24px; overflow: hidden; background: #fff;
+  box-shadow: 0 6px 24px rgba(0,0,0,.35);
+}
+.applet-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-btn.blink { animation: none; }
+  * { transition: none !important; }
+}
+
+/* Patterns used by later screens (see references/screen-patterns.md) */
+/* Guided hub: branch buttons; the next branch moves on (data-action="next"). */
+.hub-btn {
+  position: absolute; min-width: 320px; height: 76px; padding: 0 30px;
+  border: none; border-radius: 18px; background: #3A7D22; color: #fff;
+  font-size: 30px; font-weight: 700; cursor: pointer;
+}
+.hub-btn:disabled { background: #9aa39a; cursor: default; }
+.hub-btn.done { background: #3a3a3a; }
+.hub-btn.done::after { content: ' ✓'; }
+/* Ordering table for drag-to-order questions. */
+.order-table { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.order-table li { display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 600; }
+.order-table .row-num { flex: 0 0 52px; height: 52px; border-radius: 50%; background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.order-table .dnd-slot { flex: 1 1 auto; min-height: 64px; justify-content: flex-start; padding: 0 8px; }
+/* Gradual reveal ("יעלו בהדרגתיות"): add class="reveal" and stagger delays per screen. */
+.screen.active .reveal { animation: revealIn .6s backwards; }   /* backwards, not both: a finished animation must not leave a stacking layer that traps tooltips under the dim */
+@keyframes revealIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .screen.active .reveal { animation: none; } }
+
+/* Screens not built yet (draft batch markers) */
+.todo-note {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  padding: 30px 60px; border-radius: 30px; background: rgba(255,255,255,.9);
+  font-size: 44px; font-weight: 700; color: var(--subject-500); text-align: center;
+}
+
+/* ---------- 5. Per-screen positions ----------
+   One block per screen, by data-sid, in screen order. */
+
+/* ---- 1 · intro (frame 1) ---- */
+[data-sid="intro"] .intro-panel { left: 367px; top: 180px; width: 1186px; height: 397px; }
+/* Ministry logo (same badge as the Laguna lomda): a soft fading card keeps the navy logo readable on the photo */
+[data-sid="intro"] .intro-logo-badge {
+  position: absolute; top: 28px; right: 32px; z-index: 3;
+  padding: 22px 34px; border-radius: 28px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.6) 65%, rgba(255, 255, 255, 0) 100%);
+}
+[data-sid="intro"] .intro-logo { display: block; width: 240px; height: auto; }
+/* the text block is centred in the white rectangle (x 397-1523, y 210-547 in the PSD) */
+[data-sid="intro"] .intro-card {
+  position: absolute; left: 397px; top: 210px; width: 1126px; height: 337px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+}
+[data-sid="intro"] .intro-title { margin: 0; font-size: 93.3px; font-weight: 700; line-height: 1.05; color: #07236C; }
+[data-sid="intro"] .intro-subtitle { margin: 0; font-size: 73.3px; font-weight: 600; line-height: 1.05; color: #07236C; }
+[data-sid="intro"] .intro-lead { margin: 6px 0 0; font-size: 60px; font-weight: 500; line-height: 1.05; color: #010101; }
+[data-sid="intro"] .intro-start {
+  position: absolute; left: 760px; top: 846px; width: 401px; height: 227px; padding: 0 0 0 0;
+  border: none; background: url('assets/images/intro-btn.png') center / 100% 100% no-repeat;
+  color: #FCFAFA; font-size: 40px; font-weight: 800; z-index: 12;
+  display: flex; align-items: center; justify-content: center;
+}
+[data-sid="intro"] .intro-start:hover { filter: brightness(1.1); }
+
+/* ---- 2 · video-intro (frames 2, 2a) ---- */
+[data-sid="video-intro"] .video-banner { left: 644px; top: 0; width: 1276px; height: 181px; }
+[data-sid="video-intro"] .video-banner img { position: absolute; inset: 0; width: 100%; height: 100%; }
+[data-sid="video-intro"] .vb-text {
+  position: absolute; left: 47px; top: 37px; width: 1146px; margin: 0;
+  font-size: 33.3px; font-weight: 600; line-height: 40px; color: #1A1A1A; text-align: right;
+}
+/* the tip is positioned against .vb-text (banner x 644 + 47, y 37): PSD position is x 1134, y 73 */
+[data-sid="video-intro"] .term-tip { left: 443px; top: 36px; width: 597px; height: 321px; padding: 84px 71px 0 20px; --tip-img: url('assets/images/ui-tip-bubble.png'); }
+
+/* ---- 3 · trend-explain (frames 7, 7a) ---- */
+[data-sid="trend-explain"] .trend-text { position: absolute; right: 209px; top: 274px; width: 1350px; font-size: 46.7px; font-weight: 600; line-height: 1.2; }
+[data-sid="trend-explain"] .trend-text p { margin: 0; }
+/* the three lines rise together (no per-line delay) */
+/* the tip is a white bubble sized to its text; the tail (x=260 in the svg) points at the term */
+[data-sid="trend-explain"] .term-tip { left: 555px; top: 168px; width: 460px; height: 188px; padding: 38px 24px 0 24px; --tip-img: url('assets/images/tip-bubble-trend.svg'); }
+
+/* ---- 4 · graph-applet (frame 8) ---- */
+[data-sid="graph-applet"] .ga-teacher { left: 5px; top: 402px; width: 763px; height: 678px; }
+[data-sid="graph-applet"] .ga-bubble { position: absolute; left: 341px; top: 198px; width: 386px; height: 386px; }
+[data-sid="graph-applet"] .ga-bubble img { position: absolute; inset: 0; width: 100%; height: 100%; }
+[data-sid="graph-applet"] .ga-bubble p { position: absolute; left: 50px; top: 56px; width: 290px; margin: 0; font-size: 33.3px; font-weight: 600; line-height: 1.2; text-align: right; }
+[data-sid="graph-applet"] .applet-frame { left: 1000px; top: 157px; width: 753px; height: 797px; border-radius: 0; background: transparent; box-shadow: none; }   /* the new graph app is a fixed 640x680 card (enlarged 1.1x) */
+[data-sid="graph-applet"] .ga-source { position: absolute; right: 935px; top: 735px; width: 380px; margin: 0; font-size: 22px; font-weight: 600; line-height: 28px; text-align: right; }   /* left of the app, under the teacher's hand */
+
+/* ---- 5 · q1 (frames 9, 9a) ---- */
+[data-sid="q1"] .q-card { top: 167px; right: 118px; width: 850px; }
+[data-sid="q1"] .q1-graph { position: absolute; left: 101px; top: 207px; }
+[data-sid="q1"] .q1-zoom { left: 98px; top: 217px; }
+/* The graph is one self-contained block (also cloned, enlarged, by the zoom button). */
+.q1-graph { width: 828px; height: 515px; border-radius: 30px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.28); }
+.q1-graph .chart-title { position: absolute; left: 150px; top: 46px; width: 580px; margin: 0; font-size: 25.3px; font-weight: 700; text-align: center; color: #1A1A1A; }
+.q1-graph .chart-plot { position: absolute; left: 86px; top: 64px; width: 714px; height: 407px; font-size: 19px; color: #0A2854; }
+.chart-plot .ax-y { position: absolute; left: 60px; top: 68px; width: 3px; height: 270px; background: #14285a; }
+.chart-plot .ax-x { position: absolute; left: 60px; top: 336px; width: 630px; height: 3px; background: #14285a; }
+.chart-plot .grid { position: absolute; left: 63px; width: 627px; border-top: 2px dashed #d9dee8; }
+.chart-plot .tick { position: absolute; left: 0; width: 50px; text-align: right; font-weight: 600; line-height: 1; }
+.chart-plot .bar { position: absolute; bottom: 71px; width: 82px; border-radius: 6px 6px 0 0; }
+.chart-plot .xl { position: absolute; top: 346px; width: 120px; margin-left: -60px; text-align: center; font-weight: 600; line-height: 1.1; }
+.chart-plot .xl small { display: block; font-weight: 400; font-size: 19px; }
+.chart-extra { position: absolute; font-size: 19px; font-weight: 700; color: #0A2854; text-align: center; line-height: 1.1; }
+
+/* ---- 6 · video-model ---- */
+/* (video only) */
+
+/* ---- 7 · diagram (frame 11) ---- */
+[data-sid="diagram"] .diagram-banner { left: 1001px; top: 0; width: 919px; height: 151px; }
+[data-sid="diagram"] .diagram-banner-text { position: absolute; left: 1108px; top: 48px; width: 780px; margin: 0; font-size: 33.3px; font-weight: 600; text-align: right; line-height: 1.2; }
+.diagram-fig { position: absolute; left: 181px; top: 141px; width: 1573px; height: 771px; margin: 0; }
+.diagram-fig .art { left: 0; top: 0; width: 1573px; height: 771px; }
+.diagram-fig .dg-label { position: absolute; margin: 0; font-size: 28px; font-weight: 600; line-height: 1.2; color: #1A1A1A; text-align: right; }
+.diagram-fig .dg-plate { font-size: 28.5px; font-weight: 700; text-align: center; line-height: 60px; height: 60px; width: 566px; }
+.dg-fx { position: absolute; left: 0; top: 0; width: 1573px; height: 771px; pointer-events: none; overflow: hidden; }
+.dg-fx svg { position: absolute; left: 0; top: 0; width: 1573px; height: 771px; }
+/* rain: real drops with different sizes and speeds, stronger on the warming side (left) */
+.rd { position: absolute; width: 11px; height: 11px; border-radius: 50% 0 50% 50%; background: #3FA7E8; opacity: 0; transform: rotate(-45deg); animation: rdFall 1.1s linear infinite; }
+.rd-r { background: #7CC4F2; }
+@keyframes rdFall {
+  0%   { opacity: 0;  transform: translate(0, 0) rotate(-38deg) scale(var(--s)); }
+  12%  { opacity: .95; }
+  82%  { opacity: .9; }
+  100% { opacity: 0;  transform: translate(var(--dx), var(--dy)) rotate(-38deg) scale(var(--s)); }
+}
+/* the suns: the rays turn slowly and breathe */
+.dg-spin { transform-box: fill-box; transform-origin: center; animation: dgSpin 36s linear infinite; }
+.dg-spin-r { animation-duration: 52s; animation-direction: reverse; }
+.dg-rays-big, .dg-rays-small { transform-box: fill-box; transform-origin: center; animation: dgPulse 2.6s ease-in-out infinite; }
+.dg-rays-small { animation-delay: .7s; }
+@keyframes dgSpin { to { transform: rotate(360deg); } }
+@keyframes dgPulse { 0%, 100% { opacity: .45; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.06); } }
+/* the arrows: a soft glow, a spark that runs along them and vapour that rises with them */
+.dg-glow { opacity: .22; animation: dgGlow 2.2s ease-in-out infinite; }
+.dg-glow-r { animation-delay: .5s; }
+@keyframes dgGlow { 0%, 100% { opacity: .12; } 50% { opacity: .38; } }
+.dg-spark { stroke-dasharray: 9 130; stroke-dashoffset: 9; opacity: .95; animation: dgSpark 2.4s cubic-bezier(.45,0,.55,1) infinite; }
+.dg-spark-r { animation-delay: .6s; }
+@keyframes dgSpark { 0% { stroke-dashoffset: 9; opacity: 0; } 12% { opacity: .95; } 85% { opacity: .95; } 100% { stroke-dashoffset: -100; opacity: 0; } }
+.vap { position: absolute; left: 0; top: 0; width: 15px; height: 15px; margin: -7px 0 0 -7px; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: 0 0 10px rgba(255,255,255,.9); offset-rotate: 0deg; offset-distance: 0%; opacity: 0; animation: vapRise 3.4s linear infinite; }
+.vap-r { width: 11px; height: 11px; margin: -5px 0 0 -5px; background: rgba(255,255,255,.75); }
+@keyframes vapRise { 0% { offset-distance: 0%; opacity: 0; transform: scale(.5); } 15% { opacity: .9; } 85% { opacity: .85; } 100% { offset-distance: 100%; opacity: 0; transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .rd, .dg-spin, .dg-rays-big, .dg-rays-small, .dg-glow, .dg-spark, .vap { animation: none; } .rd, .vap { opacity: 0; } }
+[data-sid="diagram"] .dg-source { position: absolute; right: 201px; top: 892px; width: 650px; margin: 0; font-size: 26.7px; font-weight: 600; line-height: 1.25; }
+#reopen-popup-body > .diagram-fig { position: relative; left: 0; top: 0; width: 1573px; height: 771px; zoom: .64; }
+/* the popup hugs the diagram instead of the default 1100x700 box */
+#reopen-popup:has(.diagram-fig) { width: auto; height: auto; left: 50%; right: auto; top: 150px; transform: translateX(-50%); }
+
+/* ---- 8 · q2 (frame 13) ---- */
+[data-sid="q2"] .q-card { top: 167px; right: 118px; width: 1720px; }
+[data-sid="q2"] .q-body { white-space: nowrap; }   /* the question stays on one line (it is about 1,695px wide) */
+[data-sid="q2"] .reopen-btn { left: -17px; top: -28px; }
+/* long explanation: a wider popup keeps it below the last answer */
+#feedback-popup.fb-q2 { width: 1100px; bottom: 50px; }
+
+/* ---- 9 · hypotheses (frames 14, 14a, 14b) ---- */
+[data-sid="hypotheses"] .hy-teacher { left: 672px; top: 8px; width: 1245px; height: 275px; }
+/* PSD: the text is right-aligned to x=1643 (the teacher's portrait), 33.3px SemiBold with the last sentence Bold,
+   leading 32px, first baseline at y=74 (line box top 45) */
+[data-sid="hypotheses"] .hy-text { position: absolute; right: 277px; top: 45px; width: 900px; z-index: 2; }
+[data-sid="hypotheses"] .hy-text p { margin: 0; font-size: 33.3px; font-weight: 600; line-height: 32px; text-align: right; }
+[data-sid="hypotheses"] .hy-text strong { font-weight: 700; }
+[data-sid="hypotheses"] .tiles-board { left: 420px; top: 398px; width: 960px; }
+[data-sid="hypotheses"] .tile[data-tile-id="noa"]   { left: 1533px; top: 235px; }
+[data-sid="hypotheses"] .tile[data-tile-id="aya"]   { left: 1535px; top: 415px; }
+[data-sid="hypotheses"] .tile[data-tile-id="tomer"] { left: 1539px; top: 614px; }
+[data-sid="hypotheses"] .tile[data-tile-id="omer"]  { left: 1343px; top: 321px; }
+[data-sid="hypotheses"] .tile[data-tile-id="adam"]  { left: 1343px; top: 520px; }
+[data-sid="hypotheses"] .tile:nth-child(1) { animation-delay: .5s; }
+[data-sid="hypotheses"] .tile:nth-child(2) { animation-delay: .75s; }
+[data-sid="hypotheses"] .tile:nth-child(3) { animation-delay: 1s; }
+[data-sid="hypotheses"] .tile:nth-child(4) { animation-delay: 1.25s; }
+[data-sid="hypotheses"] .tile:nth-child(5) { animation-delay: 1.5s; }
+
+/* ---- 10 · video-test ---- */
+/* (video only) */
+
+/* ---- 11 · hub-1, 14 · hub-2, 19 · hub-3 (frames 15, 17) ---- */
+.hub-banner { left: 539px; top: 0; width: 1381px; height: 238px; }
+.hub-text { position: absolute; right: 80px; top: 33px; width: 1290px; margin: 0; font-size: 33.3px; font-weight: 600; line-height: 40px; text-align: right; }
+.hub-text strong { font-weight: 700; }
+.hub-text-2 { width: 1106px; }
+.hub-plate { position: absolute; height: 81px; display: flex; align-items: center; justify-content: center; font-size: 33.3px; font-weight: 700; color: #FCFBFB; z-index: 3; }
+.hub-plate .art { inset: 0; width: 100%; height: 100%; }
+.hub-plate span { position: relative; padding-bottom: 21px; }
+.hub-plate-soil { left: 1175px; top: 258px; width: 293px; }
+.hub-plate-channels { left: 497px; top: 258px; width: 394px; }
+.hub-card { position: absolute; z-index: 4; padding: 0; margin: 0; border: none; background: none; }
+.hub-card img { display: block; width: 100%; height: 100%; }
+.hub-card-soil { left: 1016px; top: 281px; width: 611px; height: 591px; }
+.hub-card-channels { left: 392px; top: 285px; width: 604px; height: 583px; }
+[data-sid="hub-1"] .hub-card-soil::after { content: ""; position: absolute; left: 29px; top: 29px; right: 29px; bottom: 29px; border: 7px solid #3EA34A; border-radius: 46px; box-shadow: 0 0 7px rgba(55,65,65,.59); pointer-events: none; }
+button.hub-card:not(:disabled) { cursor: pointer; }
+button.hub-card:not(:disabled):hover, button.hub-card:not(:disabled):focus-visible { filter: brightness(1.06); }
+button.hub-card:disabled { cursor: default; }
+.hub-card.done .veil { position: absolute; inset: 30px; border-radius: 44px; background: rgba(255,255,255,.55); }   /* exactly the photo (30 px transparent margin in the card art) */
+[data-sid="hub-3"] .hub-text { top: 42px; }
+[data-sid="hub-3"] .hub-banner { height: 190px; object-fit: cover; object-position: left bottom; }
+[data-sid="hub-2"] .hub-banner { height: 205px; object-fit: cover; object-position: left bottom; }   /* shorter white panel: crop the flat top */
+.hub-card.done .check { position: absolute; left: 181px; top: 172px; width: 242px; height: 239px; }
+.hub-teacher { left: 1429px; top: 443px; width: 458px; height: 638px; z-index: 6; }
+.hub-note { position: absolute; left: 440px; top: 874px; width: 1040px; margin: 0; font-size: 26.7px; font-weight: 600; line-height: 32px; text-align: center; z-index: 3; }
+.hub-note .heart { width: 32px; height: 28px; vertical-align: -5px; }
+[data-sid="hub-1"] .hub-text.reveal { animation-delay: 0s; }
+[data-sid="hub-1"] .hub-plate span { animation-delay: .5s; }
+[data-sid="hub-1"] .hub-card { animation-delay: .8s; }
+[data-sid="hub-1"] .hub-teacher { animation-delay: 1.2s; }
+[data-sid="hub-1"] .hub-note { animation-delay: 1.6s; }
+
+/* ---- 12 · soil-applet (frame 16), 21 · combo-applet ---- */
+.soil-banner { left: 214px; top: 0; width: 1706px; height: 193px; }
+.soil-text { position: absolute; right: 80px; top: 20px; width: 1566px; margin: 0; font-size: 33.3px; font-weight: 600; line-height: 40px; text-align: right; }
+.soil-banner-narrow { left: 539px; width: 1381px; }
+.soil-banner-narrow::before { content: ""; position: absolute; left: 159px; right: 0; top: 0; height: 193px; background: url(assets/images/soil-banner.png) right top / 1706px 193px no-repeat; }
+.soil-banner-narrow span { position: absolute; left: 0; top: 0; width: 160px; height: 193px; background: url(assets/images/soil-banner.png) left top / 1706px 193px no-repeat; }
+[data-sid="soil-applet"] .soil-text { right: 80px; top: 26px; width: 1290px; }
+.soil-intro { position: absolute; left: 567px; top: 301px; width: 800px; margin: 0; text-align: center; font-size: 30px; font-weight: 600; line-height: 33px; z-index: 3; }   /* text from the design (frame 16) */
+.soil-intro strong { font-weight: 800; }
+.soil-title { position: absolute; left: 619px; top: 206px; width: 697px; height: 98px; display: flex; align-items: center; justify-content: center; text-align: center; color: #fff; z-index: 3; }
+.soil-title .art { inset: 0; width: 100%; height: 100%; }
+.soil-title p { position: relative; margin: 0; font-size: 35.4px; font-weight: 400; line-height: 40px; }
+.soil-title strong { display: block; font-weight: 700; }
+[data-sid="soil-applet"] .applet-frame { left: 513px; top: 383px; width: 894px; height: 559px; border-radius: 22px; background: #000; box-shadow: 0 6px 20px rgba(0,0,0,.25); }   /* the supplied soil video (1280x800) */
+[data-sid="combo-applet"] .applet-frame { left: 343px; top: 224px; width: 1150px; height: 746px; border-radius: 14px; background: #072643; box-shadow: none; }   /* exactly the tablet screen in the background picture */
+.combo-thumb { z-index: 6; }   /* the fingers holding the tablet lie over the app, as in the picture */
+.combo-thumb-l { left: 343px; top: 545px; width: 29px; height: 150px; }
+.combo-thumb-r { left: 1470px; top: 580px; width: 30px; height: 80px; }
+[data-sid="combo-applet"] .combo-banner { height: 172px; z-index: 2; }
+[data-sid="combo-applet"] .combo-banner::before { height: 172px; background-position: right bottom; }
+[data-sid="combo-applet"] .combo-banner span { height: 172px; background-position: left bottom; }
+[data-sid="combo-applet"] .soil-text { top: 24px; z-index: 3; }
+[data-sid="combo-applet"] .soil-banner-narrow { left: 700px; width: 1220px; }   /* panel just wider than the longest line (987px) */
+
+/* ---- 13 · q3 (frame 16a) ---- */
+[data-sid="q3"] .q-card { top: 167px; right: 118px; width: 830px; }
+.q3-card { position: absolute; left: 90px; top: 300px; width: 908px; height: 568px; border-radius: 22px; overflow: hidden; box-shadow: 0 0 7px rgba(55,65,65,.59); }   /* last frame of the soil video (1280x800, labels and amounts are in the picture) */
+.q3-card .q3-img { display: block; width: 100%; height: 100%; }
+
+/* ---- 15 · channels-photos (frame 18), 16 · channels-transition ---- */
+.ch-banner { left: 293px; top: 0; width: 1627px; height: 148px; }
+[data-sid="channels-transition"] .ch-banner { left: 214px; width: 1706px; height: 193px; }
+.ch-text { position: absolute; right: 80px; top: 33px; width: 1450px; margin: 0; font-size: 33.3px; font-weight: 600; line-height: 40px; text-align: right; }
+[data-sid="channels-transition"] .ch-text { top: 25px; width: 1566px; }
+[data-sid="channels-transition"] .ch-banner-slim { left: 244px; width: 1676px; height: 150px; }   /* slimmer panel: crop the flat top of the art */
+.ch-banner-slim::before { content: ""; position: absolute; left: 159px; right: 0; top: 0; height: 150px; background: url(assets/images/soil-banner.png) right bottom / 1706px 193px no-repeat; }
+.ch-banner-slim span { position: absolute; left: 0; top: 0; width: 160px; height: 150px; background: url(assets/images/soil-banner.png) left bottom / 1706px 193px no-repeat; }
+.ch-title { position: absolute; left: 492px; top: 154px; width: 943px; height: 100px; display: flex; align-items: center; justify-content: center; text-align: center; color: #fff; z-index: 3; }
+.ch-title .art { inset: 0; width: 100%; height: 100%; }
+.ch-title p { position: relative; margin: 0; font-size: 35.4px; font-weight: 400; line-height: 40px; }
+.ch-title strong { display: block; font-weight: 700; }
+.ch-plate { position: absolute; top: 258px; height: 81px; display: flex; align-items: center; justify-content: center; z-index: 3; font-size: 33.3px; font-weight: 700; color: #FCFBFB; }
+.ch-plate .art { inset: 0; width: 100%; height: 100%; }
+.ch-plate span { position: relative; padding-bottom: 26px; }
+.ch-plate-l { left: 497px; width: 394px; }
+.ch-plate-r { left: 1148px; width: 349px; }
+.ch-card { top: 285px; width: 604px; height: 583px; z-index: 4; }   /* photo over the green tab, as in the design */
+.ch-card-l { left: 392px; }
+.ch-card-r { left: 1020px; }
+.ch-zoom-l { left: 403px; top: 306px; z-index: 5; }
+.ch-zoom-r { left: 1035px; top: 306px; z-index: 5; }
+.ch-credit { position: absolute; top: 845px; margin: 0; font-size: 26.7px; font-weight: 600; line-height: 32px; text-align: right; white-space: nowrap; }
+.ch-credit-l { left: 423px; width: 444px; }
+.ch-credit-r { left: 1052px; width: 400px; }
+
+/* ---- 17 · channels-applet (frame 19) ---- */
+.cd-banner { left: 919px; top: 0; width: 1001px; height: 197px; }
+.cd-text { position: absolute; right: 80px; top: 33px; width: 830px; margin: 0; font-size: 33.3px; font-weight: 600; line-height: 40px; text-align: right; }
+.cd-card { left: 276px; top: 188px; width: 1336px; height: 712px; }
+[data-sid="channels-applet"] .applet-frame { left: 308px; top: 220px; width: 1272px; height: 648px; border-radius: 20px; background: transparent; box-shadow: none; }
+
+/* ---- 18 · q4 ---- */
+[data-sid="q4"] .q-card { top: 167px; right: 112px; width: 870px; }
+[data-sid="q4"] .q-body { white-space: nowrap; }   /* the question stays on one line (about 857px) */
+.q4-card { position: absolute; left: 101px; top: 205px; width: 810px; height: 413px; border-radius: 36px; overflow: hidden; box-shadow: 0 0 7px rgba(55,65,65,.59); }
+.q4-card img { display: block; width: 810px; height: 413px; }
+#img-zoom-body img[src*="q4-frame"] { height: auto; width: 1650px; border-radius: 16px; }   /* wide frame: full panel width, 928px tall */
+[data-sid="q4"] .q4-zoom { left: 118px; top: 224px; }
+#feedback-popup.fb-q4 { width: 900px; }
+
+/* ---- 22 · q5 cloze (frames 21, 21a, 21b) ---- */
+[data-sid="q5"] .q-card { top: 167px; right: 118px; width: 1100px; }
+[data-sid="q5"] .cloze { position: absolute; left: 100px; top: 333px; width: 1703px; margin: 0; font-size: 37px; font-weight: 600; line-height: 82px; text-align: right; }
+[data-sid="q5"] .dnd-slot { min-width: 196px; height: 61px; margin: 0 5px; border: 2px solid #0F1167; border-radius: 10px; background: #fff; vertical-align: middle; }
+[data-sid="q5"] .dnd-slot.filled { border-color: transparent; background: transparent; }
+[data-sid="q5"] .dnd-bank { position: absolute; left: 563px; top: 724px; width: 911px; margin: 0; min-height: 142px; gap: 20px 13px; justify-content: center; align-content: flex-start; }
+.dnd-chip { width: 218px; height: 61px; min-height: 0; padding: 0 8px; border-radius: 12px; font-size: 33.3px; font-weight: 600; white-space: nowrap; }
+.dnd-slot .dnd-chip { width: 192px; height: 57px; font-size: 31px; padding: 0 4px; }
+.dnd-slot.correct .dnd-chip { background: #3EA34A; }
+.dnd-slot.wrong .dnd-chip { background: #FF0000; }
+[data-sid="q5"] .dnd-slot.correct, [data-sid="q5"] .dnd-slot.wrong { border-color: transparent; }
+#feedback-popup.fb-q5 { left: 126px; bottom: 81px; width: 818px; min-height: 180px; padding: 22px 40px 20px; }
+
+/* ---- 24 · q6 order the steps (frames 22, 22a) ---- */
+.q-panel-b { left: 133px; top: 96px; width: 1710px; height: 896px; }
+.q6-text { top: 160px; right: 171px; width: 1150px; }
+.q6-text .q-title { font-size: 40px; line-height: 48px; color: #000; }
+.q6-text .q-body { font-size: 37.3px; font-weight: 600; line-height: 44.8px; }
+.order-wrap { position: absolute; left: 398px; top: 366px; width: 1270px; height: 425px; }
+.order-head { position: absolute; left: 0; top: 0; width: 1270px; height: 80px; border-radius: 22px 22px 0 0; background: #17165B; color: #FBFAF8; font-size: 33.3px; font-weight: 700; line-height: 48px; }
+.order-head .oh-desc { position: absolute; right: 102px; top: 12px; }
+.order-head .oh-num { position: absolute; right: 8px; top: 12px; width: 90px; font-size: 24px; line-height: 28px; text-align: center; display: none; }
+.order-table { position: absolute; left: 0; top: 79px; width: 1270px; display: block; }
+.order-table li { position: relative; display: block; height: 61px; margin: 0; font-size: 33.3px; }
+.order-table li:nth-child(odd) { background: #D7E7E7; }
+.order-table li:nth-child(even) { background: #FCFCFC; }
+.order-table .row-num { position: absolute; right: 6px; top: 7px; width: 56px; height: 46px; flex: none; border-radius: 8px; background: #17165B; color: #fff; font-size: 33px; font-weight: 700; }
+.order-table .dnd-slot { position: absolute; left: 0; top: 0; right: 70px; height: 61px; margin: 0; border: none; border-radius: 0; background: transparent; justify-content: flex-end; min-width: 0; padding: 0; }
+.order-table .dnd-slot.drop-target { background: rgba(41,159,212,.25); }
+.order-table .dnd-chip { width: 100%; height: 61px; padding: 0 14px 0 0; border-radius: 0; background: transparent; color: #1C1C1B; font-size: 33.3px; font-weight: 600; text-align: right; cursor: grab; }
+.order-table .dnd-chip.dragging { opacity: .5; }
+.order-table .dnd-slot.correct .dnd-chip { background: #9DCFA3; color: #1C1C1B; }
+.order-table .dnd-slot.wrong .dnd-chip { background: #F4C7C3; color: #1C1C1B; }
+.order-wrap::after { content: ''; position: absolute; left: 0; bottom: 0; width: 1270px; height: 33px; border-radius: 0 0 20px 20px; background: #17165B; }
+.dnd-bank-hidden { display: none; }
+[data-sid="q6"] .btn-check { left: 174px; top: 728px; width: 227px; height: 155px; padding: 0 56px 6px; font-size: 37.3px; }
+#feedback-popup.fb-q6 { left: 222px; bottom: 150px; width: 807px; min-height: 136px; padding: 22px 40px 18px; }
+
+/* ---- 25 · q7, 26 · q8 ---- */
+[data-sid="q7"] .q-card { top: 167px; right: 118px; width: 1250px; }
+[data-sid="q8"] .q-card { top: 167px; right: 118px; width: 1400px; }   /* the first answer stays on one line ("במציאות" no longer wraps alone) */
+.q7-teacher { left: 0; top: 380px; width: 551px; height: 700px; z-index: 2; }   /* fills the empty bottom-left of the panel; the feedback popup may cover it */
+[data-sid="q7"] .btn-check, [data-sid="q8"] .btn-check { left: 580px; }   /* clear of the teacher */
+#feedback-popup.fb-q7, #feedback-popup.fb-q8 { left: 580px; }
+
+/* ---- 27 · finish (frame 23) ---- */
+.fin-banner { left: 640px; top: 0; width: 1280px; height: 239px; }
+.fin-text { position: absolute; right: 80px; top: 33px; width: 1120px; white-space: nowrap; margin: 0; font-size: 33.3px; font-weight: 600; line-height: 40px; text-align: right; }
+.fin-btn { position: absolute; left: 855px; top: 694px; width: 227px; height: 155px; padding: 0 0 6px; border: none; background: url('assets/images/ui-btn-check.png') center / 100% 100% no-repeat; color: #fff; font-size: 40px; font-weight: 700; cursor: pointer; z-index: 12; }
+.fin-btn:hover { filter: brightness(1.15); }
+
+/* ---- 28 · return (not in the storyboard; same black "back to Moodle" screen as the Laguna lomda) ---- */
+[data-sid="return"] { background: #000; }
+.return-stage {
+  position: absolute; inset: 0; padding: 0 120px;
+  display: flex; flex-direction: column; gap: 80px; align-items: center; justify-content: center;
+}
+.return-text { margin: 0; text-align: center; font-size: 84px; line-height: 1.4; font-weight: 700; color: #fff; }
+.return-moodle-logo { display: inline-block; height: 0.85em; width: auto; margin-inline-start: 0.25em; vertical-align: -0.1em; }
+.return-close {
+  padding: 18px 54px; border-radius: 14px; border: 3px solid #fff;
+  background: #fff; color: #000; font: inherit; font-size: 46px; font-weight: 700; cursor: pointer;
+}
+.return-close:hover { background: #d9d9d9; }
+.return-close:focus-visible { outline: 4px solid var(--accent); outline-offset: 6px; }
+.return-hint { margin: 0; text-align: center; font-size: 44px; color: #fff; }
