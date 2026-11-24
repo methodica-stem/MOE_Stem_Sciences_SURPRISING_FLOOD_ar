@@ -38,7 +38,7 @@ p, .q-body, .fb-body p { text-wrap: pretty; }
 [data-sid="q2"] .q-body, [data-sid="q4"] .q-body { white-space: normal; }
 [data-sid="q2"] .reopen-btn { font-size: 20px; line-height: 24px; padding: 0 34px; }
 /* the check button: two balanced lines inside the skin (the skin has a shadow band at the bottom) */
-.btn-check { width: 350px; font-size: 36px; line-height: 1.15; padding: 0 38px 28px; text-wrap: balance; }
+.btn-check { width: 350px; font-size: 36px; line-height: 1.15; padding: 0 64px 8px; text-wrap: balance; }
 /* 25, 26: the teacher stands in the bottom-left of the panel (x < 551): the answers keep to the space right of her */
 [data-sid="q7"] .q-card, [data-sid="q8"] .q-card { width: 1230px; }
 /* 22: cloze, five or six lines above the word bank, which moved down to make room */
@@ -61,7 +61,8 @@ p, .q-body, .fb-body p { text-wrap: pretty; }
 .order-table li, .order-table .dnd-chip { font-size: 36px; }
 .order-table .row-num { font-size: 34px; }
 .order-table .dnd-slot .dnd-chip { width: 100%; height: 61px; padding: 0 14px 0 0; font-size: 36px; }
-[data-sid="q6"] .btn-check { left: 200px; top: 826px; width: 330px; height: 170px; padding: 0 34px 24px; font-size: 33px; }
+/* 24: between the steps table (ends y 812) and the bottom of the panel (y 945): the skin's dark body is 93px tall at 150px */
+[data-sid="q6"] .btn-check { left: 190px; top: 796px; width: 350px; height: 150px; padding: 0 64px 6px; font-size: 32px; }
 
 /* ── Screen 1 ── the lead line balances over two lines; the button is wide enough for its word ── */
 [data-sid="intro"] .intro-lead { font-size: 60px; text-wrap: balance; }
@@ -73,7 +74,12 @@ p, .q-body, .fb-body p { text-wrap: pretty; }
 [data-sid="video-intro"] .vb-text > br { display: none; }
 [data-sid="graph-applet"] .ga-bubble p, .diagram-fig .dg-label, [data-sid="q3"] .q-body { text-wrap: balance; }
 /* the tip: the bubble picture (it holds the flower photo) is scaled 1.5x, text 32px, kept clear of the photo; its tail is under the term */
-[data-sid="video-intro"] .term-tip { width: 900px; height: 484px; padding: 124px 108px 0 32px; font-size: 32px; line-height: 42px; left: 432px; top: 185px; }
+/* Round 3: the bubble is drawn in CSS (white box, flower photo cut out of the Hebrew art on the left), so the arrow can stem
+   from the word (x 1239 on the stage; the box starts at x 905) and the text stays 36px clear of the photo. */
+[data-sid="video-intro"] .term-tip { left: 418px; top: 198px; width: 920px; height: 342px; padding: 51px 52px 0 362px; font-size: 36px; line-height: 48px;
+  filter: drop-shadow(0 5px 9px rgba(12,12,13,.3)); }
+[data-sid="video-intro"] .term-tip::before { background: url('assets/images/tip-flower.png') no-repeat 34px 32px / 290px auto, #fff; border-radius: 34px; filter: none; }
+[data-sid="video-intro"] .term-tip::after { content: ''; position: absolute; left: 306px; top: -96px; width: 56px; height: 100px; z-index: -1; background: #fff; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 
 /* ── Screen 3 ── the tip is drawn in CSS, so it can be as large as the text needs */
 [data-sid="trend-explain"] .trend-text p { text-wrap: balance; }
@@ -83,10 +89,12 @@ p, .q-body, .fb-body p { text-wrap: pretty; }
 
 /* ── Screen 4 ── the board picture is 10% larger and the applet card fills it; the teacher's bubble and the source are larger */
 [data-sid="graph-applet"] .screen-bg { transform: scale(1.1); transform-origin: 50% 50%; }
-[data-sid="graph-applet"] .ga-bubble { left: 300px; top: 96px; width: 480px; height: 480px; }
-[data-sid="graph-applet"] .ga-bubble p { font-size: 34px; line-height: 1.22; top: 74px; left: 56px; width: 372px; }
-[data-sid="graph-applet"] .applet-frame { left: 890px; top: 122px; width: 833px; height: 883px; }
-[data-sid="graph-applet"] .ga-source { right: 1050px; top: 700px; width: 470px; font-size: 27px; line-height: 34px; }
+/* Round 3: the card moves to the right edge of the board; the bubble moves right so its tail no longer covers the teacher's
+   face; its text is centred; the source note sits between the teacher's hand and the card */
+[data-sid="graph-applet"] .ga-bubble { left: 420px; top: 96px; width: 480px; height: 480px; }
+[data-sid="graph-applet"] .ga-bubble p { font-size: 34px; line-height: 1.22; top: 74px; left: 56px; width: 372px; text-align: center; }
+[data-sid="graph-applet"] .applet-frame { left: 965px; top: 122px; width: 833px; height: 883px; }
+[data-sid="graph-applet"] .ga-source { right: 960px; top: 742px; width: 400px; font-size: 27px; line-height: 34px; }
 
 /* ── Screen 7 ── the banner is longer; two lines of 38px */
 [data-sid="diagram"] .diagram-banner { left: 780px; width: 1140px; height: 170px; }
@@ -96,9 +104,13 @@ p, .q-body, .fb-body p { text-wrap: pretty; }
 [data-sid="diagram"] .dg-source { width: 1100px; font-size: 28px; top: 888px; }
 
 /* ── Screen 9 ── the teacher's picture (portrait and bubble) is 1.25x; the portraits of the pupils move down to clear it */
-[data-sid="hypotheses"] .hy-teacher { left: 361px; top: 8px; width: 1556px; height: 344px; }
+/* round 3: the bubble art (assets-ar/images/hypotheses-teacher.png) is 40px wider than the Hebrew one: 1285px x 1.25 */
+[data-sid="hypotheses"] .hy-teacher { left: 311px; top: 8px; width: 1606px; height: 344px; }
 [data-sid="hypotheses"] .hy-text { right: 345px; top: 54px; width: 1150px; }
-[data-sid="hypotheses"] .hy-text p { font-size: 36px; line-height: 44px; }
+[data-sid="hypotheses"] .hy-text p { font-size: 38px; line-height: 47px; }
+/* round 3: the text is three lines (it was four and the last line touched the bottom edge of the bubble; the two breaks
+   inside the first sentences are removed by index-ar-fixes.py); it sits a little lower, centred in the bubble */
+[data-sid="hypotheses"] .hy-text { top: 62px; }
 [data-sid="hypotheses"] .tile[data-tile-id="noa"]   { top: 345px; }
 [data-sid="hypotheses"] .tile[data-tile-id="omer"]  { top: 431px; }
 [data-sid="hypotheses"] .tile[data-tile-id="aya"]   { top: 525px; }
@@ -129,8 +141,16 @@ p, .q-body, .fb-body p { text-wrap: pretty; }
 .ch-title { left: 260px; width: 1400px; }
 .ch-title p { font-size: 34px; line-height: 39px; padding: 0 16px; }
 .ch-plate { font-size: 34px; white-space: nowrap; }
-.ch-plate-l { left: 451px; width: 440px; }
-.ch-plate-r { left: 1062px; width: 435px; }
+/* round 3: the photo cards move 40px left; each plate, photo, zoom button and credit line is centred on one column
+   (left column x 654, right column x 1282) */
+.ch-plate-l { left: 434px; width: 440px; }
+.ch-plate-r { left: 1064px; width: 435px; }
+.ch-card-l { left: 352px; }
+.ch-card-r { left: 980px; }
+.ch-zoom-l { left: 363px; }
+.ch-zoom-r { left: 995px; }
+.ch-credit-l { left: 354px; width: 600px; text-align: center; }
+.ch-credit-r { left: 982px; width: 600px; text-align: center; }
 .ch-text { font-size: 37px; line-height: 45px; }
 [data-sid="channels-transition"] .ch-banner-slim { height: 184px; }
 [data-sid="channels-transition"] .ch-banner-slim::before, [data-sid="channels-transition"] .ch-banner-slim span { height: 184px; background-size: 1706px 193px; }

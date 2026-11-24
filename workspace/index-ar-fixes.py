@@ -16,6 +16,10 @@ FIXES = [
     # Q5 cloze: the Hebrew text keeps a Latin comma between a blank and the line break (',<br>' after blanks 4 and 5);
     # it is made the Arabic comma. The comma is a text node outside every translation unit.
     ("html", '</span>,<br>', '</span>،<br>', 2),
+    # Screen 9 narration: the Hebrew breaks its first sentences into short lines; the Arabic bubble is wider and lets them
+    # flow, so the text is three lines (the break before the bold sentence stays). Round 3, 2026-11-24.
+    ("html", 'بزيادة<br>أحداث', 'بزيادة أحداث', 1),
+    ("html", 'فقط<br>فيضانات', 'فقط فيضانات', 1),
 ]
 for a in APPLETS:
     # the applet is a separate document: Arabic language, then the Arabic typeface and line-height AFTER its own
