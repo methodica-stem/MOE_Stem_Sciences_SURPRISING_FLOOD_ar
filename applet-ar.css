@@ -6,3 +6,17 @@ body { line-height: 1.4; }
 header h1 { font-size: 31px; line-height: 1.15; }
 header p { font-size: 16px; line-height: 1.3; margin-top: 2px; }
 .intro { font-size: 15px; line-height: 1.35; padding-top: 5px; }
+
+/* rain-graph (screen 4): the card is 1.24x (the board picture behind it is 10% larger) and its texts are larger.
+   html:has(#step-text) picks this applet only. */
+html:has(#step-text) body { zoom: 1.24; }
+html:has(#step-text) .main-title { font-size: 22px; }
+html:has(#step-text) #step-text { font-size: 17.5px; line-height: 1.5; }
+html:has(#step-text) button { font-size: 17px; }
+html:has(#step-text) .y-title, html:has(#step-text) .x-title, html:has(#step-text) .bar-value { font-size: 18px; }
+html:has(#step-text) .y-ticks span, html:has(#step-text) .x-ticks span { font-size: 17px; }
+html:has(#step-text) .x-ticks small { font-size: 15px; }
+html:has(#step-text) #explanation-text { font-size: 16.5px; line-height: 1.6; }
+html:has(#step-text) #final-caption { font-size: 17px; }
+html:has(#step-text) { --step-h: 134px; }
+html:has(#step-text) #step-text { font-size: 20px; }
