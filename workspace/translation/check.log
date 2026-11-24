@@ -1,0 +1,20 @@
+units: 492 | runs: 460 | ERROR 0 | CHECK 15 | INFO 47
+  CHECK numbers         1
+  CHECK sentence-start  14
+  INFO  glossary        47
+CHECK FLOOD-01-001 [sentence-start] may open with a particle letter (و-): check it is not a prefix | وزارة التربية والتعليم، إدارة الابتكار والتكنولوجيا
+CHECK FLOOD-04-004 [numbers] numbers differ: ['21'] vs ['21', '5784'] (fine for a dual or a spelled-out number) | المصدر: الرسم البيانيّ مبنيّ على بيانات نُشرت في تقرير "تحليل الاتّجاه
+CHECK FLOOD-05-014 [sentence-start] may open with a particle letter (ب-): check it is not a prefix | بقيت شدّة أحداث المطر المتطرّفة ثابتة
+CHECK FLOOD-09-003 [sentence-start] may open with a particle letter (ف-): check it is not a prefix | فيضانات مفاجئة كثيرة؟
+CHECK FLOOD-14-001 [sentence-start] may open with a particle letter (ف-): check it is not a prefix | فُحصت الفرضيّة! اكتشفنا أنّ الماء يتسرّب ببطء أكبر في التربة الطينيّة،
+CHECK FLOOD-22-006 [sentence-start] may open with a particle letter (و-): check it is not a prefix | وغزير، وتربة طينيّة، 
+CHECK FLOOD-22-008 [sentence-start] may open with a particle letter (ك-): check it is not a prefix |  كبيرة، وخانق ضيّق تُنتج ظروفا مناسبة لحدوث الفيضان المفاجئ.
+CHECK FLOOD-22-015 [sentence-start] may open with a particle letter (ف-): check it is not a prefix | فيتجمّع بسرعة 
+CHECK FLOOD-22-021 [sentence-start] opens with a preposition/connector (في) | في مكان ضيّق
+CHECK FLOOD-22-024 [sentence-start] may open with a particle letter (ف-): check it is not a prefix | فروق ارتفاع
+CHECK FLOOD-23-003 [sentence-start] may open with a particle letter (و-): check it is not a prefix | ويختارون الطريقة المناسبة لفحص الفرضيّة.
+CHECK FLOOD-26-016 [sentence-start] may open with a particle letter (ب-): check it is not a prefix | بيّنت التجربة في الوحدة التعليميّة كيف يمكن الاستعانة بالنماذج لدراسة 
+CHECK FLOOD-26-018 [sentence-start] may open with a particle letter (ب-): check it is not a prefix | بيّنت التجربة في الوحدة التعليميّة كيف يمكن الاستعانة بالنماذج لدراسة 
+CHECK FLOOD-26-020 [sentence-start] may open with a particle letter (ب-): check it is not a prefix | بيّنت التجربة في الوحدة التعليميّة كيف يمكن الاستعانة بالنماذج لدراسة 
+CHECK FLOOD-28-003 [sentence-start] may open with a particle letter (و-): check it is not a prefix | وأجيبوا عن الأسئلة.
+wrote C:/Users/user/OneDrive - methodic.co.il/Documents/STEM/השיטפון המפתיע/ערבית/translation/review.xlsx

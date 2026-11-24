@@ -1,0 +1,30 @@
+screen_id,screen_title,screen_type,source_file,container_or_selector,unit_count,manual_review
+FLOOD-00,Module chrome (outside any screen),Chrome,index.html,n/a,12,0
+FLOOD-01,פתיחה,opening,index.html,".screen[data-screen=""1""]",5,0
+FLOOD-02,סרטון פתיחה – הטיול נדחה,video,index.html,".screen[data-screen=""2""]",31,0
+FLOOD-03,המטאורולוגי וגרף מגמות,explain,index.html,".screen[data-screen=""3""]",12,0
+FLOOD-04,ישומון – גרף עוצמת הגשם,applet,assets/app/rain-graph.html + index.html,".screen[data-screen=""4""]",30,0
+FLOOD-05,שאלה 1 – מגמת עוצמת הגשם,question,index.html,".screen[data-screen=""5""]",32,0
+FLOOD-06,סרטון – המורה מציגה מודל תרשים,video,index.html,".screen[data-screen=""6""]",5,0
+FLOOD-07,תרשים: התחממות וגשם,explain,index.html,".screen[data-screen=""7""]",15,0
+FLOOD-08,שאלה 2 – הסבר לגשם חזק,question,index.html,".screen[data-screen=""8""]",20,0
+FLOOD-09,השערות התלמידים,tiles,index.html,".screen[data-screen=""9""]",23,0
+FLOOD-10,סרטון – הגיע הזמן לבדוק,video,index.html,".screen[data-screen=""10""]",4,0
+FLOOD-11,גורמים אפשריים – בחירת השערה ראשונה,hub,index.html,".screen[data-screen=""11""]",12,0
+FLOOD-12,הדמיה – סוגי קרקע וחלחול,applet,assets/app/soil-test.html + index.html,".screen[data-screen=""12""]",12,0
+FLOOD-13,שאלה 3 – מסקנה מניסוי הקרקע,question,index.html,".screen[data-screen=""13""]",23,0
+FLOOD-14,גורמים אפשריים – ההשערה השנייה,hub,index.html,".screen[data-screen=""14""]",8,0
+FLOOD-15,נחלי המדבר – תמונות,explain,index.html,".screen[data-screen=""15""]",15,0
+FLOOD-16,מעבר להדמיית הערוצים,explain,index.html,".screen[data-screen=""16""]",12,0
+FLOOD-17,הדמיה – שלושה ערוצי נחל,applet,assets/app/channels-demo.html + index.html,".screen[data-screen=""17""]",10,0
+FLOOD-18,שאלה 4 – רוחב הנחל ומהירות הזרימה,question,index.html,".screen[data-screen=""18""]",20,0
+FLOOD-19,גורמים אפשריים – שתי ההשערות נבדקו,hub,index.html,".screen[data-screen=""19""]",7,0
+FLOOD-20,סרטון – מסלול המים והטאבלטים,video,index.html,".screen[data-screen=""20""]",12,0
+FLOOD-21,הדמיה – שילוב שלושת הגורמים,applet,assets/app/flood-lab.html + index.html,".screen[data-screen=""21""]",56,0
+FLOOD-22,שאלה 5 – שילוב הגורמים (השלמת מילים),question,index.html,".screen[data-screen=""22""]",34,0
+FLOOD-23,סרטון – כך עובדים מדענים,video,index.html,".screen[data-screen=""23""]",6,0
+FLOOD-24,שאלה 6 – סדר שלבי החקר,question,index.html,".screen[data-screen=""24""]",26,0
+FLOOD-25,שאלה 7 – מדוע משתמשים במודלים,question,index.html,".screen[data-screen=""25""]",17,0
+FLOOD-26,שאלה 8 – מדוע חשוב היה להתנסות,question,index.html,".screen[data-screen=""26""]",22,0
+FLOOD-27,סיום,finish,index.html,".screen[data-screen=""27""]",6,0
+FLOOD-28,חזרה למודל,finish,index.html,".screen[data-screen=""28""]",5,0

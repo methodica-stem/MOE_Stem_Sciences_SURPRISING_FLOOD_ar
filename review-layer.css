@@ -1,0 +1,18 @@
+/* ============================================================
+   review-layer.css — REVIEW VERSION ONLY (never in the clean build).
+   Proposed Arabic over the Hebrew painted into the pictures. Static: no animation.
+   ============================================================ */
+.rl-layer { position: absolute; inset: 0; pointer-events: none; }
+.rl-layer.rl-late { z-index: 3; }                      /* above the video, below the video controls */
+.rl-patch, .rl-t, .rl-frame { position: absolute; box-sizing: border-box; }
+.rl-t { display: flex; align-items: center; justify-content: center; text-align: center; direction: rtl;
+        line-height: 1.12; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.rl-frame { outline: 3px dashed #ffd400; outline-offset: 2px; }
+.rl-frame i { position: absolute; right: 0; top: -26px; padding: 2px 8px; border-radius: 6px 6px 0 0; background: #ffd400;
+              color: #000; font-style: normal; font-size: 15px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+.rl-frame.rl-tag-in i { top: auto; bottom: 0; right: auto; left: 0; border-radius: 0 6px 0 0; }
+body.rl-off .rl-layer { display: none; }
+#rl-toggle { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 450;
+             padding: 6px 18px; border: 2px solid #ffd400; border-radius: 22px; background: rgba(0,0,0,.72); color: #ffd400;
+             font: 700 22px/1.2 inherit; font-family: inherit; cursor: pointer; white-space: nowrap; }
+#rl-toggle[aria-pressed="false"] { background: rgba(0,0,0,.5); color: #fff; border-color: #fff; }

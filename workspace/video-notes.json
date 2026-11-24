@@ -1,0 +1,30 @@
+{
+ "video-intro.mp4": {
+  "characters": "Screen 2 (64.8 s, 1920x1080). The classroom of grade 5 at school \"נאות המדבר\": the teacher (long curly hair, glasses, flowered shirt), the five students at their desks, and the principal who comes in with the announcement. Inserts on the smart board: footage of a muddy flash flood in a desert stream (about 0:16-0:34).",
+  "note": "One long scene; 19 caption cues, then the story text of the screen. Speakers INFERRED, not listened to: cues 1-7 the principal (forecast, the trip is postponed), cue 8 a student asking how a flood forms in the desert, cues 9-19 the teacher. ON-SCREEN TEXT TO RE-MAKE IN ARABIC: the board title, painted in handwriting on the smart board at the start (0:00-0:17) and again in the last seconds: \"טיול לרכס בוקר שבהר הנגב\" -> proposed \"رحلة إلى سلسلة بوكير في مرتفعات النقب\" (ARABIC PENDING: reviewer to confirm the place names). The flood footage on the board carries no words."
+ },
+ "video-model.mp4": {
+  "characters": "Screen 6 (18.1 s). Close-ups of the students (a girl in grey, a boy in a blue cap, others), the teacher seen from behind at the front of the class.",
+  "note": "2 caption cues: cue 1 a student (sounds like a question after the graph), cue 2 the teacher explaining that a diagram model will be used. Speakers INFERRED, not listened to. ON-SCREEN TEXT TO RE-MAKE IN ARABIC: none (the wall posters are not legible)."
+ },
+ "video-test.mp4": {
+  "characters": "Screen 10 (7.9 s). The teacher at the smart board, the students listening from behind.",
+  "note": "1 caption cue, the teacher: all the hypotheses are excellent, time to test them. ON-SCREEN TEXT TO RE-MAKE IN ARABIC: the board title \"טיול לרכס בוקר שבהר הנגב\" (same as in video-intro) -> proposed \"رحلة إلى سلسلة بوكير في مرتفعات النقب\" (ARABIC PENDING). The poster picture shown before the video starts carries it too (video-test-poster.jpg)."
+ },
+ "video-flow.mp4": {
+  "characters": "Screen 20 (36.9 s). The teacher in front of the smart board with a landscape of a desert stream under a storm cloud; two white labels on the picture; then the students at their desks with tablets.",
+  "note": "9 caption cues, cues 1-8 the teacher, cue 9 a student (\"וואו!\"). Speakers INFERRED, not listened to. ON-SCREEN TEXT TO RE-MAKE IN ARABIC: the two map labels on the board picture, visible all through the first part and in the poster picture (video-flow-poster.jpg): \"אזור גבוה\" -> proposed \"منطقة مرتفعة\" (on the mountain, upper left) and \"אזור נמוך\" -> proposed \"منطقة منخفضة\" (in the valley, right). The animated blue arrows and drops carry no words."
+ },
+ "video-scientists.mp4": {
+  "characters": "Screen 23 (10.6 s, 1280x720). The teacher at the smart board, the students listening.",
+  "note": "3 caption cues, the teacher: scientists start to investigate exactly as the learners did. Speaker INFERRED, not listened to. ON-SCREEN TEXT TO RE-MAKE IN ARABIC: the board title \"טיול לרכס בוקר שבהר הנגב\" -> proposed \"رحلة إلى سلسلة بوكير في مرتفعات النقب\" (ARABIC PENDING); also on the poster picture (video-scientists-poster.jpg)."
+ },
+ "channels-flow.mp4": {
+  "characters": "Screen 17, inside the three-channels simulation (8.7 s, silent: an audio track of water only). Three glass channels of different widths under three taps.",
+  "note": "NOT narrated and NOT replaced in the Arabic build (the clip is the simulation itself). The three signs at the foot of the channels are painted into the clip and into its poster picture: \"ערוץ צר\" -> proposed \"مجرى ضيّق\", \"ערוץ בינוני\" -> \"مجرى متوسّط\", \"ערוץ רחב\" -> \"مجرى واسع\". The producer repaints the signs in Arabic (the same picture is on screen 18 as q4-frame.jpg and in channels-demo-card.png)."
+ },
+ "soil-test.mp4": {
+  "characters": "Screen 12, inside the soil simulation (20 s, silent). Four containers of soil with taps over four measuring cups.",
+  "note": "NOT narrated and NOT replaced in the Arabic build. The four labels above the containers are painted into the clip and into its poster picture: \"קרקע חרסיתית 100%\", \"חרסית 75% חול 25%\", \"חרסית 50% חול 50%\", \"קרקע חולית 100%\" -> proposed \"تربة طينيّة 100%\", \"طين 75% رمل 25%\", \"طين 50% رمل 50%\", \"تربة رمليّة 100%\"; the same labels are in q3-frame.jpg (screen 13)."
+ }
+}

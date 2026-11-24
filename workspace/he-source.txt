@@ -1,0 +1,10 @@
+he-source = the Hebrew lomda השיטפון המפתיע (STEM_Flood, grade 5), work repo "flood" (branch main, clean), commit eec6118 (2026-11-23, "Add Ministry of Education logo and back-to-Moodle end screen").
+Path of the repo: Organization Data/Projects/משרד החינוך/מכרז_דיגיטציה_בחינוך/STEM/STEM מדעים/_יסודי_/השיטפון המפתיע - כיתה ה/הפקה/Source Code/flood
+The same Hebrew lomda is on GitHub: https://github.com/methodica-stem/STEM_surprisingFlood_HE (content at eec6118, checked 2026-11-24).
+In the Arabic repo the he-source/ folder is NOT included (115 MB). To get it: clone that repo anywhere, run `git archive eec6118 -o he.tar`,
+make an empty folder workspace/he-source and unpack he.tar into it (or download that commit from GitHub and unpack it there).
+Extracted with `git archive HEAD` (2026-11-24). Read-only: never edited here. It still contains the work notes (PROGRESS.md, PROJECT_BRIEF.md,
+open-questions.md, production-notes.md, screens.json, index_dev.html); the build copies only index.html, script.js, styles.css and assets/{images,fonts,app}.
+To move to a newer Hebrew commit: git archive it into a new folder, swap it for he-source/, re-export the XLIFF
+(py ~/.claude/skills/stem-lomda-builder/scripts/export_xliff.py he-source --prefix FLOOD --out translation/export --previous translation/flood_he.xlf),
+copy translation/export/he-source.xlf to translation/flood_he.xlf, rebuild, and read the missing-translation list.

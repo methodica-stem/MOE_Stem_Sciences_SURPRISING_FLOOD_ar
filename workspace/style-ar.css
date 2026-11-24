@@ -1,0 +1,92 @@
+/* ============================================================
+   style-ar.css — Arabic build layout overrides for השיטפון המפתיע (STEM_Flood).
+   Loaded AFTER styles.css, which stays byte-identical to the Hebrew build.
+   Typeface lives in fonts-ar.css. Every override says which screen it is for and what was measured.
+   ============================================================ */
+
+/* Orphans: Arabic words are longer; ask the browser to rebalance the closing lines. */
+p, .q-body, .fb-body p { text-wrap: pretty; }
+
+/* Screen 11 hub note: the Hebrew writes "שימו ♥:" (שימו לב with a heart picture for לב). In Arabic the picture means
+   nothing, so the word انتبهوا stands alone and the heart is hidden (translation note FLOOD-11-009). */
+.hub-note .heart { display: none; }
+
+/* ── Question screens (5, 8, 13, 18, 22, 24, 25, 26) ───────────────────────────────────────────────
+   Arabic runs about 15-25% longer than the Hebrew: the question text is 35px instead of 41.8px, the answers balance
+   their lines so no single word is left on the last line, and the stem may wrap. */
+:root { --text-size: 35px; }
+.q-body, .q-instruction { line-height: 46px; }
+.q-title { font-size: 42px; }
+.q-opt { font-size: 35px; line-height: 44px; gap: 14px; text-wrap: balance; }
+.q-mark { margin-top: 11px; }
+[data-sid="q2"] .q-body, [data-sid="q4"] .q-body { white-space: normal; }
+[data-sid="q2"] .reopen-btn { font-size: 19px; line-height: 22px; padding: 0 36px; }
+/* 25, 26: the teacher stands in the bottom-left of the panel (x < 551): the answers keep to the space right of her */
+[data-sid="q7"] .q-card, [data-sid="q8"] .q-card { width: 1230px; }
+/* 22: the instruction stays on one line, the cloze is a little smaller so five lines end above the word bank (y 724) */
+[data-sid="q5"] .q-card { width: 1500px; }
+[data-sid="q5"] .cloze { font-size: 33px; line-height: 70px; }
+/* 24: three lines of text above the table (y 366) */
+.q6-text { width: 1400px; }
+.q6-text .q-body { font-size: 33px; line-height: 40px; }
+.order-head .oh-desc { top: 21px; line-height: 40px; }
+.order-table li, .order-table .dnd-chip { font-size: 30px; }
+
+/* ── Screen 1 ── the lead line balances over two lines; ── */
+[data-sid="intro"] .intro-lead { font-size: 56px; text-wrap: balance; }
+
+/* ── Screen 2 ── the story line is three lines in the banner (the Hebrew <br> is dropped: it forced a short second line) */
+[data-sid="video-intro"] .vb-text { font-size: 31px; line-height: 38px; top: 30px; }
+[data-sid="video-intro"] .vb-text > br { display: none; }
+[data-sid="video-intro"] .term-tip { width: 640px; padding-right: 60px; font-size: 25px; top: 72px; }   /* hangs under the term, which moved right when the Hebrew <br> was dropped */
+
+/* ── Screen 3 ── */
+[data-sid="trend-explain"] .trend-text p { text-wrap: balance; }
+[data-sid="trend-explain"] .term-tip { width: 880px; height: 200px; font-size: 25px; left: 266px; top: 22px; padding: 38px 40px 0 40px; }   /* sits above the term (tail at the bottom), which is on the last line in Arabic */
+/* the bubble picture is an svg that keeps its proportions, so a bubble this wide is drawn in CSS: white card + tail */
+[data-sid="trend-explain"] .term-tip::before { background: #fff; border-radius: 28px; }
+[data-sid="trend-explain"] .term-tip::after { content: ''; position: absolute; left: 477px; bottom: -17px; z-index: -1; border: 20px solid transparent; border-bottom: 0; border-top: 18px solid #fff; border-left-width: 20px; border-right-width: 20px; }
+
+/* ── Screen 4 ── the teacher's bubble: seven lines of 33px do not fit the 386px bubble */
+[data-sid="graph-applet"] .ga-bubble p { font-size: 27px; line-height: 1.2; top: 70px; left: 46px; width: 300px; }
+
+/* ── Screen 7 ── the source line stays on one line */
+[data-sid="diagram"] .dg-source { width: 900px; font-size: 24px; }
+
+/* ── Screen 9 ── the teacher's bubble: four lines, more leading for the Arabic marks */
+[data-sid="hypotheses"] .hy-text { top: 40px; }
+[data-sid="hypotheses"] .hy-text p { font-size: 27px; line-height: 34px; }
+
+/* ── Screens 11, 14, 19 ── the hub banner text ── */
+.hub-text { font-size: 28.5px; line-height: 36px; top: 28px; }
+.hub-text-2 { font-size: 26px; line-height: 32px; }
+[data-sid="hub-3"] .hub-text { top: 30px; font-size: 27px; line-height: 34px; }
+.hub-note { width: 1000px; left: 420px; font-size: 25px; line-height: 31px; }
+
+/* ── Screen 12 ── the title bar and the intro under it */
+.soil-title p { font-size: 29px; line-height: 34px; padding: 0 14px; }
+.soil-intro { left: 460px; width: 1000px; top: 310px; font-size: 26px; line-height: 30px; }
+.soil-text { font-size: 29px; line-height: 36px; }
+
+/* ── Screens 15, 16 ── hypothesis bar, plates and banner text */
+.ch-title p { font-size: 26px; line-height: 30px; padding: 0 16px; }
+.ch-plate { font-size: 26px; white-space: nowrap; }
+.ch-text { font-size: 29px; line-height: 36px; }
+[data-sid="channels-transition"] .ch-text { font-size: 29px; }
+
+/* ── Screen 17 ── the banner holds five lines */
+.cd-text { font-size: 26px; line-height: 31px; top: 18px; width: 850px; }
+
+/* ── Screen 21 ── banner text */
+[data-sid="combo-applet"] .soil-text { font-size: 28px; line-height: 34px; top: 20px; }
+
+/* ── Screen 27 ── the closing text wraps inside the banner (the Hebrew is four nowrap lines) */
+.fin-text { white-space: normal; width: 1120px; font-size: 27px; line-height: 32px; top: 30px; }
+
+/* ── Feedback panels ───────────────────────────────────────────────────────────────────────────────
+   The Arabic explanations run one or two lines longer than the Hebrew: the long final panels use 33px type (the house
+   floor is 34px for the Hebrew), and the panels of screens 25 and 26 are wide enough that they stop above the last
+   answer (they overlapped it by 12-14px at 777px). The engine hides the retry panel as soon as the answer changes,
+   so the check button is never under it (feedback_qa reports it for the Hebrew build too). */
+#feedback-popup.fb-q2 .fb-body p, #feedback-popup.fb-q3 .fb-body p, #feedback-popup.fb-q4 .fb-body p { font-size: 33px; }
+#feedback-popup.fb-q7, #feedback-popup.fb-q8 { width: 1150px; }
